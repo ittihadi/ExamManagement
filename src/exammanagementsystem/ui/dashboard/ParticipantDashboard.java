@@ -8,6 +8,7 @@ package exammanagementsystem.ui.dashboard;
 
 import javax.swing.*;
 import exammanagementsystem.ui.result.*;
+import exammanagementsystem.ui.exam.AvailableExamPanel;
 
 public class ParticipantDashboard extends JFrame {
 
@@ -18,7 +19,7 @@ public class ParticipantDashboard extends JFrame {
         setLocationRelativeTo(null);
 
         JTabbedPane tabs = new JTabbedPane();
-        tabs.add("Available Exams", new JPanel());
+        tabs.add("Available Exams", new AvailableExamPanel());
         tabs.add("My Results", new ResultPerParticipantPanel());
 
         add(tabs);

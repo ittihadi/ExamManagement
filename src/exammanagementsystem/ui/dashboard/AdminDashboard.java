@@ -7,15 +7,15 @@ package exammanagementsystem.ui.dashboard;
  */
 
 import javax.swing.*;
-import exammanagementsystem.ui.exam.*;
-import exammanagementsystem.ui.question.*;
-import exammanagementsystem.ui.result.*;
+import exammanagementsystem.ui.exam.ExamManagementPanel;
+import exammanagementsystem.ui.question.QuestionSetPanel;
+import exammanagementsystem.ui.result.ScoreDistributionPanel;
 
 public class AdminDashboard extends JFrame {
 
     public AdminDashboard() {
         setTitle("Admin Dashboard");
-        setSize(1100,650);
+        setSize(1100, 650);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -23,10 +23,6 @@ public class AdminDashboard extends JFrame {
 
         tabs.add("Exams", new ExamManagementPanel());
         tabs.add("Questions", new QuestionSetPanel());
-        tabs.add("Participants", new ParticipantListPanel());
-        tabs.add("Supervisors", new SupervisorListPanel());
-        tabs.add("Score Distribution", new ScoreDistributionPanel());
-
         add(tabs);
     }
 }

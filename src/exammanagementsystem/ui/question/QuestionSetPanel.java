@@ -8,48 +8,54 @@ package exammanagementsystem.ui.question;
 
 import javax.swing.*;
 import java.awt.*;
+import exammanagementsystem.ui.exam.ExamManagementPanel.ViewMode;
 
 public class QuestionSetPanel extends JPanel {
 
+    private ViewMode viewMode = ViewMode.ALL;
+    private String examId;
+
+    private JLabel contextLabel;
+    private JTable questionTable;
+
     public QuestionSetPanel() {
         setLayout(new BorderLayout(10, 10));
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        initUI();
+    }
 
-        // TABLE QUESTION
-        JTable questionTable = new JTable(
+    private void initUI() {
+        contextLabel = new JLabel("All Questions");
+        contextLabel.setFont(contextLabel.getFont().deriveFont(Font.BOLD));
+
+        questionTable = new JTable(
             new Object[][]{
-                {"1", "What is Java?", "Objective", "A"},
-                {"2", "Explain OOP concept", "Essay", "-"}
+                {"Q001", "What is Java?", "Objective"},
+                {"Q002", "Explain OOP", "Essay"}
             },
-            new String[]{
-                "No", "Question Content", "Type", "Correct Answer"
-            }
+            new String[]{"ID", "Question", "Type"}
         );
 
-        // FORM QUESTION
-        JPanel formPanel = new JPanel(new GridLayout(6, 2, 10, 10));
-        formPanel.setBorder(BorderFactory.createTitledBorder("Question Form"));
-
-        formPanel.add(new JLabel("Question Number"));
-        formPanel.add(new JTextField());
-
-        formPanel.add(new JLabel("Question Content"));
-        formPanel.add(new JTextArea(3, 20));
-
-        formPanel.add(new JLabel("Question Type"));
-        formPanel.add(new JComboBox<>(new String[]{"Objective", "Essay"}));
-
-        formPanel.add(new JLabel("Correct Answer"));
-        formPanel.add(new JTextField());
-
-        // BUTTONS
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.add(new JButton("Add"));
-        buttonPanel.add(new JButton("Update"));
-        buttonPanel.add(new JButton("Delete"));
-
+        add(contextLabel, BorderLayout.NORTH);
         add(new JScrollPane(questionTable), BorderLayout.CENTER);
-        add(formPanel, BorderLayout.EAST);
-        add(buttonPanel, BorderLayout.SOUTH);
+    }
+
+    /* ========= DIPANGGIL DARI ExamManagementPanel ========= */
+
+    public void setViewMode(ViewMode mode) {
+        this.viewMode = mode;
+        updateContextLabel();
+    }
+
+    public void setExamContext(String examId) {
+        this.examId = examId;
+        updateContextLabel();
+    }
+
+    private void updateContextLabel() {
+        if (viewMode == ViewMode.ALL || examId == null) {
+            contextLabel.setText("All Questions");
+        } else {
+            contextLabel.setText("Questions for Exam: " + examId);
+        }
     }
 }

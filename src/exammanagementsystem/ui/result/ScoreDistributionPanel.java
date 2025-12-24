@@ -40,4 +40,7 @@ public class ScoreDistributionPanel extends JPanel {
         add(new JScrollPane(distributionTable), BorderLayout.CENTER);
         add(summaryPanel, BorderLayout.SOUTH);
     }
+    public void setExamContext(String examId) {
+    // nanti: load distribusi nilai per exam
+    }
 }

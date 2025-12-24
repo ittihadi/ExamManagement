@@ -36,4 +36,8 @@ public class ScoringPanel extends JPanel {
         add(new JScrollPane(scoringTable), BorderLayout.CENTER);
         add(bottomPanel, BorderLayout.SOUTH);
     }
+    
+    public void setExamContext(String examId) {
+    // nanti: filter scoring berdasarkan examId
+    }
 }
