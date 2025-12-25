@@ -22,7 +22,7 @@ public class ExamDAO {
 
 		public Exam(int id, String title, String description, Timestamp start_time, Timestamp end_time) {
 			this.id = id;
-			this.title = description;
+			this.title = title;
 			this.description = description;
 			this.start_time = start_time;
 			this.end_time = end_time;
@@ -95,7 +95,7 @@ public class ExamDAO {
 						exams.getString("title"),
 						exams.getString("description"),
 						exams.getTimestamp("start_time"),
-						exams.getTimestamp("start_time")));
+						exams.getTimestamp("end_time")));
 			}
 		}
 		return result;
@@ -114,7 +114,7 @@ public class ExamDAO {
 						exam.getString("title"),
 						exam.getString("description"),
 						exam.getTimestamp("start_time"),
-						exam.getTimestamp("start_time"));
+						exam.getTimestamp("end_time"));
 			}
 		}
 

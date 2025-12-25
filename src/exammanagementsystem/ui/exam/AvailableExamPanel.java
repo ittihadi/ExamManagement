@@ -8,33 +8,40 @@ package exammanagementsystem.ui.exam;
 
 import javax.swing.*;
 import java.awt.*;
+import exammanagementsystem.dao.ExamDAO;
+import javax.swing.table.DefaultTableModel;
 
 public class AvailableExamPanel extends JPanel {
 
-    public AvailableExamPanel() {
+    private ExamDAO examDAO = new ExamDAO();
+    private JTable table;
+    private DefaultTableModel model;
+
+    public AvailableExamPanel(String userId) {
         setLayout(new BorderLayout(10,10));
-        setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
 
-        JLabel title = new JLabel("Available Exams", JLabel.CENTER);
-        title.setFont(title.getFont().deriveFont(Font.BOLD, 16));
-
-        JTable examTable = new JTable(
-            new Object[][]{
-                {"Mid Exam", "2025-06-01 09:00", "2025-06-01 11:00", "Finished"},
-                {"Final Exam", "2025-07-01 13:00", "2025-07-01 15:00", "Upcoming"}
-            },
-            new String[]{
-                "Exam Title", "Start Time", "End Time", "Status"
-            }
+        model = new DefaultTableModel(
+            new String[]{"Exam ID", "Title", "Start", "End"}, 0
         );
+        table = new JTable(model);
 
-        JButton viewResultBtn = new JButton("View Result");
+        loadData(userId);
 
-        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        bottom.add(viewResultBtn);
+        add(new JScrollPane(table), BorderLayout.CENTER);
+    }
 
-        add(title, BorderLayout.NORTH);
-        add(new JScrollPane(examTable), BorderLayout.CENTER);
-        add(bottom, BorderLayout.SOUTH);
+    private void loadData(String userId) {
+        try {
+            for (ExamDAO.Exam e : examDAO.readByParticipant(userId)) {
+                model.addRow(new Object[]{
+                    e.getId(),
+                    e.getTitle(),
+                    e.getStart_time(),
+                    e.getEnd_time()
+                });
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Failed load exams");
+        }
     }
 }

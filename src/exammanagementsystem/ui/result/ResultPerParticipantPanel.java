@@ -8,28 +8,57 @@ package exammanagementsystem.ui.result;
 
 import javax.swing.*;
 import java.awt.*;
+import exammanagementsystem.dao.ExamDAO;
+import exammanagementsystem.dao.ResultDAO;
+import javax.swing.table.DefaultTableModel;
 
 public class ResultPerParticipantPanel extends JPanel {
 
-    public ResultPerParticipantPanel() {
+    private JComboBox<ExamDAO.Exam> cbExam;
+    private JTable table;
+    private DefaultTableModel model;
+
+    private ExamDAO examDAO = new ExamDAO();
+    private ResultDAO resultDAO = new ResultDAO();
+
+    public ResultPerParticipantPanel(String userId) {
         setLayout(new BorderLayout(10,10));
-        setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
 
-        JLabel title = new JLabel("My Exam Results", JLabel.CENTER);
-        title.setFont(new Font("Arial", Font.BOLD, 16));
+        cbExam = new JComboBox<>();
+        loadExamList(userId);
 
-        JTable resultTable = new JTable(
-            new Object[][]{
-                {"Mid Exam", "1", "A", "Correct", "10"},
-                {"Mid Exam", "2", "Essay Answer", "Pending", "-"}
-            },
-            new String[]{
-                "Exam Title", "Question No",
-                "Answer", "Status", "Score"
-            }
+        cbExam.addActionListener(e -> loadResult(userId));
+
+        model = new DefaultTableModel(
+            new String[]{"Question", "Answer", "Score"}, 0
         );
+        table = new JTable(model);
 
-        add(title, BorderLayout.NORTH);
-        add(new JScrollPane(resultTable), BorderLayout.CENTER);
+        add(cbExam, BorderLayout.NORTH);
+        add(new JScrollPane(table), BorderLayout.CENTER);
+    }
+
+    private void loadExamList(String userId) {
+        try {
+            for (ExamDAO.Exam e : examDAO.readByParticipant(userId)) {
+                cbExam.addItem(e);
+            }
+        } catch (Exception ignored) {}
+    }
+
+    private void loadResult(String userId) {
+        model.setRowCount(0);
+        ExamDAO.Exam exam = (ExamDAO.Exam) cbExam.getSelectedItem();
+        if (exam == null) return;
+
+        try {
+            for (ResultDAO.Result r : resultDAO.readByExamAndUser(exam.getId(), userId)) {
+                model.addRow(new Object[]{
+                    r.getNumber(),
+                    r.getAnswer(),
+                    r.getScore()
+                });
+            }
+        } catch (Exception ignored) {}
     }
 }

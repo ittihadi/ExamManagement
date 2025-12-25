@@ -12,15 +12,15 @@ import exammanagementsystem.ui.exam.AvailableExamPanel;
 
 public class ParticipantDashboard extends JFrame {
 
-    public ParticipantDashboard() {
+    public ParticipantDashboard(String userId) {
         setTitle("Participant Dashboard");
         setSize(900,600);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
         JTabbedPane tabs = new JTabbedPane();
-        tabs.add("Available Exams", new AvailableExamPanel());
-        tabs.add("My Results", new ResultPerParticipantPanel());
+        tabs.add("Available Exams", new AvailableExamPanel(userId));
+        tabs.add("My Results", new ResultPerParticipantPanel(userId));
 
         add(tabs);
     }

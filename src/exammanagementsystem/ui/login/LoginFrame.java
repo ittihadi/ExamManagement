@@ -87,7 +87,7 @@ public class LoginFrame extends JFrame {
                             new SupervisorDashboard(user).setVisible(true);
                             break;
                         case "Participant":
-                            new ParticipantDashboard().setVisible(true);
+                            new ParticipantDashboard(user).setVisible(true);
                             break;
                     }
 
