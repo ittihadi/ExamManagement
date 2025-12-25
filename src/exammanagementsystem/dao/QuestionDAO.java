@@ -119,7 +119,11 @@ public class QuestionDAO {
 	}
 
 	public void update(Question question) throws SQLException {
-		String sql = "UPDATE questions SET questions.exam_id = ?, questions.number = ?, questions.content = ?, questions.correct_answer = ?, questions.type = ? WHERE questions.exam_id = ? AND results.number = ?";
+		String sql = """
+                UPDATE questions SET
+                    exam_id = ?, number = ?, content = ?, correct_answer = ?, type = ?
+                WHERE exam_id = ? AND number = ?
+                """;
 		try (Connection conn = DatabaseConnection.getConnection()) {
 			PreparedStatement update_question = conn.prepareStatement(sql);
 			update_question.setInt(1, question.exam_id);
@@ -141,7 +145,7 @@ public class QuestionDAO {
 	 */
 	public void delete(int exam_id, int number) throws SQLException {
 		String sql = "DELETE FROM questions WHERE questions.exam_id = ? AND questions.number = ?";
-		String sql_result = "DELETE FROM results WHERE results.exam_id = ? AND questions.number = ?";
+		String sql_result ="DELETE FROM results WHERE exam_id = ? AND number = ?";
 
 		try (Connection conn = DatabaseConnection.getConnection()) {
 			PreparedStatement delete_question = conn.prepareStatement(sql);
@@ -151,7 +155,7 @@ public class QuestionDAO {
 
 			delete_results.setInt(1, exam_id);
 			delete_results.setInt(2, number);
-
+                        
 			delete_question.executeUpdate();
 			delete_results.executeUpdate();
 		}

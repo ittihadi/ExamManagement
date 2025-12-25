@@ -161,9 +161,10 @@ public class UserDAO {
 	public List<User> readParticipantsByExamId(int id) throws SQLException {
 		List<User> result = new ArrayList<>();
 		String sql = """
-					SELECT users.id as id, users.role_id as role_id
-						JOIN (SELECT participants.user_id FROM participants WHERE participants.exam_id = ?) AS sub_participants
-					ON users.id = sub_participants.user_id
+					SELECT users.id, users.role_id
+                                        FROM users
+                                        JOIN participants ON users.id = participants.user_id
+                                        WHERE participants.exam_id = ?
 				""";
 		try (Connection conn = DatabaseConnection.getConnection()) {
 			PreparedStatement find_exam_participants = conn.prepareStatement(sql);
