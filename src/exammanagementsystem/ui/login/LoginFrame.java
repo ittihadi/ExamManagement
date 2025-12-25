@@ -68,7 +68,7 @@ public class LoginFrame extends JFrame {
                 PreparedStatement user_fetch = conn
                         .prepareStatement("SELECT users.id AS user_id, roles.name AS role_name "
                                 + "FROM users INNER JOIN roles ON users.role_id=roles.id "
-                                + "WHERE users.id=? AND users.password=?");
+                                + "WHERE users.id=? AND users.password=?    ");
                 user_fetch.setString(1, username.getText());
                 user_fetch.setString(2, new String(password.getPassword()));
                 System.out.println(user_fetch.toString());

@@ -8,11 +8,9 @@ package exammanagementsystem.ui.question;
 
 import javax.swing.*;
 import java.awt.*;
-import exammanagementsystem.ui.exam.ExamManagementPanel.ViewMode;
 
 public class QuestionSetPanel extends JPanel {
 
-    private ViewMode viewMode = ViewMode.ALL;
     private String examId;
 
     private JLabel contextLabel;
@@ -41,10 +39,6 @@ public class QuestionSetPanel extends JPanel {
 
     /* ========= DIPANGGIL DARI ExamManagementPanel ========= */
 
-    public void setViewMode(ViewMode mode) {
-        this.viewMode = mode;
-        updateContextLabel();
-    }
 
     public void setExamContext(String examId) {
         this.examId = examId;
@@ -52,7 +46,7 @@ public class QuestionSetPanel extends JPanel {
     }
 
     private void updateContextLabel() {
-        if (viewMode == ViewMode.ALL || examId == null) {
+        if (examId == null) {
             contextLabel.setText("All Questions");
         } else {
             contextLabel.setText("Questions for Exam: " + examId);

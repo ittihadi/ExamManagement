@@ -15,4 +15,5 @@ public class Main {
             new LoginFrame().setVisible(true);
         });
     }
-}
+}   
+//NOTE: coba mu lihat dulu kek mana bentuknya aku gak bisa nengok
