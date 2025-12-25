@@ -167,6 +167,7 @@ public class UserDAO {
 			update_user.setString(1, user.id);
 			update_user.setString(2, user.pass);
 			update_user.setInt(3, user.role.value);
+			update_user.setString(4, user.id);
 
 			update_user.executeUpdate();
 		}

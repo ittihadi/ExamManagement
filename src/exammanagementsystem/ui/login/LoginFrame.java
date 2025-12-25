@@ -71,7 +71,7 @@ public class LoginFrame extends JFrame {
                                 + "WHERE users.id=? AND users.password=?    ");
                 user_fetch.setString(1, username.getText());
                 user_fetch.setString(2, new String(password.getPassword()));
-                System.out.println(user_fetch.toString());
+                // System.out.println(user_fetch.toString());
                 ResultSet fetch_result = user_fetch.executeQuery();
 
                 if (fetch_result.next()) {

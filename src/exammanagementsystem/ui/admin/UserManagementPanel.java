@@ -14,7 +14,6 @@ import exammanagementsystem.dao.UserDAO.Roles;
 
 import java.awt.*;
 import java.sql.SQLException;
-import java.util.UUID;
 
 //useenamenya dah ku hapus
 //dah ku connect juga tapi coba cek dulu, mana tahu ada kesalahan lagi :v
@@ -42,8 +41,7 @@ public class UserManagementPanel extends JPanel {
 
     private void initTable() {
         model = new DefaultTableModel(
-                new Object[]{"User ID", "Password", "Role"}, 0
-        ) {
+                new Object[] { "User ID", "Password", "Role" }, 0) {
             @Override
             public boolean isCellEditable(int r, int c) {
                 return false;
@@ -62,7 +60,7 @@ public class UserManagementPanel extends JPanel {
         model.setRowCount(0);
         try {
             for (User u : user_dao.readNonAdmins()) {
-                model.addRow(new Object[]{
+                model.addRow(new Object[] {
                         u.getId(),
                         u.getPass(),
                         u.getRole().toString()
@@ -73,7 +71,6 @@ public class UserManagementPanel extends JPanel {
         }
     }
 
-
     private void initForm() {
         JPanel form = new JPanel(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
@@ -82,7 +79,7 @@ public class UserManagementPanel extends JPanel {
 
         txtUserId = new JTextField(15);
         txtPassword = new JTextField(15);
-        cbRole = new JComboBox<>(new String[]{"SUPERVISOR", "PARTICIPANT"});
+        cbRole = new JComboBox<>(new String[] { "SUPERVISOR", "PARTICIPANT" });
 
         JButton btnAdd = new JButton("Add");
         JButton btnUpdate = new JButton("Update");
@@ -95,31 +92,36 @@ public class UserManagementPanel extends JPanel {
         btnClear.addActionListener(e -> clearForm());
 
         int y = 0;
-        c.gridx = 0; c.gridy = y;
+        c.gridx = 0;
+        c.gridy = y;
         form.add(new JLabel("User ID"), c);
         c.gridx = 1;
         form.add(txtUserId, c);
 
         y++;
-        c.gridx = 0; c.gridy = y;
+        c.gridx = 0;
+        c.gridy = y;
         form.add(new JLabel("Password"), c);
         c.gridx = 1;
         form.add(txtPassword, c);
 
         y++;
-        c.gridx = 0; c.gridy = y;
+        c.gridx = 0;
+        c.gridy = y;
         form.add(new JLabel("Role"), c);
         c.gridx = 1;
         form.add(cbRole, c);
 
         y++;
-        c.gridx = 0; c.gridy = y;
+        c.gridx = 0;
+        c.gridy = y;
         form.add(btnAdd, c);
         c.gridx = 1;
         form.add(btnUpdate, c);
 
         y++;
-        c.gridx = 0; c.gridy = y;
+        c.gridx = 0;
+        c.gridy = y;
         form.add(btnDelete, c);
         c.gridx = 1;
         form.add(btnClear, c);
@@ -127,7 +129,7 @@ public class UserManagementPanel extends JPanel {
         add(form, BorderLayout.EAST);
     }
 
-    //ini untuk bagian CRUD nya
+    // ini untuk bagian CRUD nya
 
     private void addUser() {
         String id = txtUserId.getText().trim();
@@ -142,8 +144,7 @@ public class UserManagementPanel extends JPanel {
             User user = new User(
                     id,
                     pass,
-                    Roles.valueOf(cbRole.getSelectedItem().toString())
-            );
+                    Roles.valueOf(cbRole.getSelectedItem().toString()));
             user_dao.create(user);
             reloadTable();
             clearForm();
@@ -154,16 +155,17 @@ public class UserManagementPanel extends JPanel {
 
     private void updateUser() {
         int row = table.getSelectedRow();
-        if (row == -1) return;
+        if (row == -1)
+            return;
 
         try {
             User user = new User(
                     txtUserId.getText().trim(),
                     txtPassword.getText().trim(),
-                    Roles.valueOf(cbRole.getSelectedItem().toString())
-            );
+                    Roles.valueOf(cbRole.getSelectedItem().toString()));
             user_dao.update(user);
             reloadTable();
+            clearForm();
         } catch (SQLException e) {
             showError(e);
         }
@@ -171,7 +173,8 @@ public class UserManagementPanel extends JPanel {
 
     private void deleteUser() {
         int row = table.getSelectedRow();
-        if (row == -1) return;
+        if (row == -1)
+            return;
 
         String id = model.getValueAt(row, 0).toString();
         try {
@@ -185,14 +188,19 @@ public class UserManagementPanel extends JPanel {
 
     private void loadSelectedUser() {
         int row = table.getSelectedRow();
-        if (row == -1) return;
+        if (row == -1) {
+            txtUserId.setEditable(true);
+            return;
+        }
 
+        txtUserId.setEditable(false);
         txtUserId.setText(model.getValueAt(row, 0).toString());
         txtPassword.setText(model.getValueAt(row, 1).toString());
         cbRole.setSelectedItem(model.getValueAt(row, 2).toString());
     }
 
     private void clearForm() {
+        txtUserId.setEditable(true);
         txtUserId.setText("");
         txtPassword.setText("");
         cbRole.setSelectedIndex(0);
