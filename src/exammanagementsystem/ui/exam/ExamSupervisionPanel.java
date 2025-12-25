@@ -11,6 +11,8 @@ import javax.swing.table.DefaultTableModel;
 
 import exammanagementsystem.dao.ExamDAO;
 import exammanagementsystem.dao.ExamDAO.Exam;
+import exammanagementsystem.dao.ResultDAO;
+import exammanagementsystem.dao.ResultDAO.Result;
 
 import java.awt.*;
 import java.sql.SQLException;
@@ -28,17 +30,20 @@ public class ExamSupervisionPanel extends JPanel {
 
     private final String supervisor_id;
     private final ExamDAO exam_dao;
+    private final ResultDAO result_dao;
 
     public ExamSupervisionPanel(String user_id) {
         supervisor_id = user_id;
         exam_dao = new ExamDAO();
+        result_dao = new ResultDAO();
 
         setLayout(new BorderLayout(10, 10));
-        initHeader(); // Select exam (siap ngab)
-        initTable(); // All response, group by qs. number / user ID (siap ngab)
-        initForm(); // Update answer, score (siap ngab)
-        // TODO: Tambahin answer baru juga
+        initHeader();
+        initTable();
+        initForm();
     }
+
+    // ================= HEADER =================
 
     private void initHeader() {
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -56,20 +61,19 @@ public class ExamSupervisionPanel extends JPanel {
 
         if (cbSelectExam.getItemCount() == 0) {
             cbSelectExam.setEnabled(false);
-            cbSelectExam.addItem(null);
         }
 
-        // Custom renderer to show item names intead of internal object names
         cbSelectExam.setRenderer(new DefaultListCellRenderer() {
             @Override
-            public Component getListCellRendererComponent(final JList list, Object value, final int index,
-                    final boolean isSelected,
-                    final boolean cellHasFocus) {
+            public Component getListCellRendererComponent(
+                    JList<?> list, Object value, int index,
+                    boolean isSelected, boolean cellHasFocus) {
 
-                Exam value_exam = (Exam) value;
-                value = value_exam.getTitle();
-
-                return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Exam exam) {
+                    value = exam.getTitle();
+                }
+                return super.getListCellRendererComponent(
+                        list, value, index, isSelected, cellHasFocus);
             }
         });
 
@@ -81,9 +85,11 @@ public class ExamSupervisionPanel extends JPanel {
         add(header, BorderLayout.NORTH);
     }
 
+    // ================= TABLE =================
+
     private void initTable() {
         model = new DefaultTableModel(
-                new Object[] {
+                new Object[]{
                         "Question No",
                         "Participant ID",
                         "Answer",
@@ -97,10 +103,13 @@ public class ExamSupervisionPanel extends JPanel {
 
         table = new JTable(model);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.getSelectionModel().addListSelectionListener(e -> loadSelectedResponse());
+        table.getSelectionModel()
+             .addListSelectionListener(e -> loadSelectedResponse());
 
         add(new JScrollPane(table), BorderLayout.CENTER);
     }
+
+    // ================= FORM =================
 
     private void initForm() {
         JPanel form = new JPanel(new GridBagLayout());
@@ -120,64 +129,58 @@ public class ExamSupervisionPanel extends JPanel {
         btnUpdate.addActionListener(e -> updateScore());
 
         int y = 0;
-        c.gridx = 0;
-        c.gridy = y;
+        c.gridx = 0; c.gridy = y;
         form.add(new JLabel("Question No"), c);
         c.gridx = 1;
         form.add(txtQuestionNo, c);
 
         y++;
-        c.gridx = 0;
-        c.gridy = y;
+        c.gridx = 0; c.gridy = y;
         form.add(new JLabel("Participant"), c);
         c.gridx = 1;
         form.add(txtParticipant, c);
 
         y++;
-        c.gridx = 0;
-        c.gridy = y;
+        c.gridx = 0; c.gridy = y;
         form.add(new JLabel("Score"), c);
         c.gridx = 1;
         form.add(txtScore, c);
 
         y++;
-        c.gridx = 1;
-        c.gridy = y;
+        c.gridx = 1; c.gridy = y;
         form.add(btnUpdate, c);
 
         add(form, BorderLayout.EAST);
     }
 
-    private JPanel simpleLabel(String text) {
-        JPanel p = new JPanel(new BorderLayout());
-        p.add(new JLabel(text, SwingConstants.CENTER), BorderLayout.CENTER);
-        return p;
-    }
+    // ================= LOGIC =================
 
-    // bagian logic
-
-    // DAO nya belum kepanggil tapi rasanya udah siap untuk logicnya
     private void loadResponses() {
         model.setRowCount(0);
 
         Exam selected = (Exam) cbSelectExam.getSelectedItem();
-        if (selected == null)
-            return;
+        if (selected == null) return;
 
-        // TODO:
         try {
-            exam_dao.readById(selected.getId());
-            // for each result:
-            // model.addRow(...)
+            List<Result> results = result_dao.readByExam(selected.getId());
+
+            for (Result r : results) {
+                model.addRow(new Object[]{
+                        r.getNumber(),
+                        r.getUser_id(),
+                        r.getAnswer(),
+                        r.getScore()
+                });
+            }
+
         } catch (SQLException e) {
-            e.printStackTrace();
+            showError(e);
         }
     }
 
     private void loadSelectedResponse() {
         int row = table.getSelectedRow();
-        if (row == -1)
-            return;
+        if (row == -1) return;
 
         txtQuestionNo.setText(model.getValueAt(row, 0).toString());
         txtParticipant.setText(model.getValueAt(row, 1).toString());
@@ -186,23 +189,44 @@ public class ExamSupervisionPanel extends JPanel {
 
     private void updateScore() {
         int row = table.getSelectedRow();
-        if (row == -1)
-            return;
+        if (row == -1) return;
 
-        String score = txtScore.getText().trim();
+        Exam exam = (Exam) cbSelectExam.getSelectedItem();
+        if (exam == null) return;
 
-        if (score.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Score required");
-            return;
+        try {
+            int questionNo = Integer.parseInt(txtQuestionNo.getText());
+            String userId = txtParticipant.getText();
+            float score = Float.parseFloat(txtScore.getText());
+
+            Result updated = new Result(
+                    exam.getId(),
+                    userId,
+                    questionNo,
+                    model.getValueAt(row, 2).toString(),
+                    score
+            );
+
+            result_dao.update(updated);
+
+            model.setValueAt(score, row, 3);
+            JOptionPane.showMessageDialog(this, "Score updated");
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Invalid score");
+        } catch (SQLException e) {
+            showError(e);
         }
-
-        // TODO:
-        // ResultDAO.updateScore(...)
-        model.setValueAt(score, row, 3);
     }
 
     private void showError(Exception e) {
-        JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(
+                this,
+                e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE
+        );
         e.printStackTrace();
     }
 }
+

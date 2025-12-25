@@ -68,7 +68,6 @@ public class ExamManagementPanel extends JPanel {
 
 
     private void initFormAndTabs() {
-        // ===== FORM =====
         JPanel form = new JPanel(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
         c.insets = new Insets(4, 4, 4, 4);
@@ -114,7 +113,7 @@ public class ExamManagementPanel extends JPanel {
         form.add(btnClear, c);
 
         tabs = new JTabbedPane();
-        tabs.add("Questions", simpleLabel("Questions CRUD (select exam first)"));
+        tabs.add("Questions", simpleLabel("Select exam first"));
         tabs.add("Participants", simpleLabel("Participants CRUD (per exam)"));
         tabs.add("Supervisors", simpleLabel("Supervisors CRUD (per exam)"));
 
@@ -138,9 +137,19 @@ public class ExamManagementPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Failed load exams");
         }
     }
+    
+    private void reloadTabsForSelectedExam() {
+        tabs.removeAll();
+
+        tabs.add("Questions", new QuestionManagementPanel(selectedExam.getId()));
+        tabs.add("Participants", new ParticipantAssignPanel(selectedExam.getId()));
+        tabs.add("Supervisors", new SupervisorAssignPanel(selectedExam.getId()));
+    }
+
 
     private void onExamSelected() {
         selectedExam = (Exam) cbSelectExam.getSelectedItem();
+
         if (selectedExam == null) {
             updateUIState(false);
             return;
@@ -148,6 +157,8 @@ public class ExamManagementPanel extends JPanel {
 
         txtTitle.setText(selectedExam.getTitle());
         txtDescription.setText(selectedExam.getDescription());
+
+        reloadTabsForSelectedExam();
         updateUIState(true);
     }
 
@@ -220,8 +231,6 @@ public class ExamManagementPanel extends JPanel {
     }
 
     private void updateUIState(boolean enabled) {
-        txtTitle.setEnabled(enabled);
-        txtDescription.setEnabled(enabled);
         tabs.setEnabled(enabled);
     }
 
