@@ -10,23 +10,25 @@ import javax.swing.table.DefaultTableModel;
 
 import exammanagementsystem.dao.UserDAO;
 import exammanagementsystem.dao.UserDAO.User;
+import exammanagementsystem.dao.UserDAO.Roles;
 
 import java.awt.*;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
+
+//useenamenya dah ku hapus
+//dah ku connect juga tapi coba cek dulu, mana tahu ada kesalahan lagi :v
 
 public class UserManagementPanel extends JPanel {
 
     private JTable table;
     private DefaultTableModel model;
 
-    private JTextField txtUsername;
+    private JTextField txtUserId;
     private JTextField txtPassword;
     private JComboBox<String> cbRole;
 
-    private UserDAO user_dao;
+    private final UserDAO user_dao;
 
     public UserManagementPanel() {
         user_dao = new UserDAO();
@@ -36,32 +38,41 @@ public class UserManagementPanel extends JPanel {
         initForm();
     }
 
-    // Ini untuk tabelnya, tapi coba mu tengok nanti soalnya aku 100% gak bisa
-    // nengok hasilnya
+    /* ================= TABLE ================= */
 
     private void initTable() {
         model = new DefaultTableModel(
-                new Object[] { "ID", "Password", "Role" }, 0) {
+                new Object[]{"User ID", "Password", "Role"}, 0
+        ) {
             @Override
-            public boolean isCellEditable(int row, int column) {
-                return false; // tabelnya read only
+            public boolean isCellEditable(int r, int c) {
+                return false;
             }
         };
-
-        try {
-            user_dao.readNonAdmins()
-                    .forEach(u -> model.addRow(new Object[] { u.getId(), u.getPass(), u.getRole().toString() }));
-        } catch (Exception e) {
-            System.out.println("Gagal membaca user list: ");
-            e.printStackTrace();
-        }
 
         table = new JTable(model);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.getSelectionModel().addListSelectionListener(e -> loadSelectedUser());
 
+        reloadTable();
         add(new JScrollPane(table), BorderLayout.CENTER);
     }
+
+    private void reloadTable() {
+        model.setRowCount(0);
+        try {
+            for (User u : user_dao.readNonAdmins()) {
+                model.addRow(new Object[]{
+                        u.getId(),
+                        u.getPass(),
+                        u.getRole().toString()
+                });
+            }
+        } catch (SQLException e) {
+            showError(e);
+        }
+    }
+
 
     private void initForm() {
         JPanel form = new JPanel(new GridBagLayout());
@@ -69,9 +80,9 @@ public class UserManagementPanel extends JPanel {
         c.insets = new Insets(4, 4, 4, 4);
         c.fill = GridBagConstraints.HORIZONTAL;
 
-        txtUsername = new JTextField(15);
+        txtUserId = new JTextField(15);
         txtPassword = new JTextField(15);
-        cbRole = new JComboBox<>(new String[] { "SUPERVISOR", "PARTICIPANT" });
+        cbRole = new JComboBox<>(new String[]{"SUPERVISOR", "PARTICIPANT"});
 
         JButton btnAdd = new JButton("Add");
         JButton btnUpdate = new JButton("Update");
@@ -84,36 +95,31 @@ public class UserManagementPanel extends JPanel {
         btnClear.addActionListener(e -> clearForm());
 
         int y = 0;
-        c.gridx = 0;
-        c.gridy = y;
-        form.add(new JLabel("Username"), c);
+        c.gridx = 0; c.gridy = y;
+        form.add(new JLabel("User ID"), c);
         c.gridx = 1;
-        form.add(txtUsername, c);
+        form.add(txtUserId, c);
 
         y++;
-        c.gridx = 0;
-        c.gridy = y;
+        c.gridx = 0; c.gridy = y;
         form.add(new JLabel("Password"), c);
         c.gridx = 1;
         form.add(txtPassword, c);
 
         y++;
-        c.gridx = 0;
-        c.gridy = y;
+        c.gridx = 0; c.gridy = y;
         form.add(new JLabel("Role"), c);
         c.gridx = 1;
         form.add(cbRole, c);
 
         y++;
-        c.gridx = 0;
-        c.gridy = y;
+        c.gridx = 0; c.gridy = y;
         form.add(btnAdd, c);
         c.gridx = 1;
         form.add(btnUpdate, c);
 
         y++;
-        c.gridx = 0;
-        c.gridy = y;
+        c.gridx = 0; c.gridy = y;
         form.add(btnDelete, c);
         c.gridx = 1;
         form.add(btnClear, c);
@@ -121,85 +127,79 @@ public class UserManagementPanel extends JPanel {
         add(form, BorderLayout.EAST);
     }
 
-    // untuk Bagian CRUD nya (coba nanti testkan, aku gak bisa test)
+    //ini untuk bagian CRUD nya
 
     private void addUser() {
-        String username = txtUsername.getText().trim();
-        String password = new String(txtPassword.getText());
-        String role = cbRole.getSelectedItem().toString();
+        String id = txtUserId.getText().trim();
+        String pass = txtPassword.getText().trim();
 
-        if (username.isEmpty() || password.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Username & Password required");
+        if (id.isEmpty() || pass.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "User ID & Password required");
             return;
         }
 
-        String id = UUID.randomUUID().toString().substring(0, 8);
-
-        UserRow user = new UserRow(id, username, password, role);
-        // users.add(user);
-
-        model.addRow(new Object[] { id, username, role });
-        clearForm();
+        try {
+            User user = new User(
+                    id,
+                    pass,
+                    Roles.valueOf(cbRole.getSelectedItem().toString())
+            );
+            user_dao.create(user);
+            reloadTable();
+            clearForm();
+        } catch (SQLException e) {
+            showError(e);
+        }
     }
 
     private void updateUser() {
         int row = table.getSelectedRow();
-        if (row == -1)
-            return;
+        if (row == -1) return;
 
-        // UserRow user = users.get(row);
-        // user.username = txtUsername.getText();
-        // user.password = new String(txtPassword.getPassword());
-        // user.role = cbRole.getSelectedItem().toString();
-        //
-        // model.setValueAt(user.username, row, 1);
-        // model.setValueAt(user.role, row, 2);
+        try {
+            User user = new User(
+                    txtUserId.getText().trim(),
+                    txtPassword.getText().trim(),
+                    Roles.valueOf(cbRole.getSelectedItem().toString())
+            );
+            user_dao.update(user);
+            reloadTable();
+        } catch (SQLException e) {
+            showError(e);
+        }
     }
 
     private void deleteUser() {
         int row = table.getSelectedRow();
-        if (row == -1)
-            return;
+        if (row == -1) return;
 
-        // users.remove(row);
-        // model.removeRow(row);
-        // clearForm();
+        String id = model.getValueAt(row, 0).toString();
+        try {
+            user_dao.delete(id);
+            reloadTable();
+            clearForm();
+        } catch (SQLException e) {
+            showError(e);
+        }
     }
 
     private void loadSelectedUser() {
         int row = table.getSelectedRow();
-        if (row == -1)
-            return;
+        if (row == -1) return;
 
-        String user_id = model.getValueAt(row, 0).toString();
-        try {
-            User selected_user = user_dao.readById(user_id);
-            txtPassword.setText(selected_user.getPass());
-            cbRole.setSelectedItem(selected_user.getRole().toString());
-        } catch (SQLException e) {
-            System.out.println("Gagal membaca user:");
-            e.printStackTrace();
-        }
+        txtUserId.setText(model.getValueAt(row, 0).toString());
+        txtPassword.setText(model.getValueAt(row, 1).toString());
+        cbRole.setSelectedItem(model.getValueAt(row, 2).toString());
     }
 
     private void clearForm() {
-        txtUsername.setText("");
+        txtUserId.setText("");
         txtPassword.setText("");
         cbRole.setSelectedIndex(0);
         table.clearSelection();
     }
 
-    private static class UserRow {
-        String id;
-        String username;
-        String password;
-        String role;
-
-        UserRow(String id, String username, String password, String role) {
-            this.id = id;
-            this.username = username;
-            this.password = password;
-            this.role = role;
-        }
+    private void showError(Exception e) {
+        JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
     }
 }
