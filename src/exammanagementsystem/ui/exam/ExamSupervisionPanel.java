@@ -6,63 +6,60 @@ package exammanagementsystem.ui.exam;
  * @author bakthiananda
  */
 
-//coba mu lihat dulu hadi, aku gak bisa nengok outputnya masalahnya
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
 import exammanagementsystem.dao.ExamDAO;
+import exammanagementsystem.dao.ExamDAO.Exam;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class ExamSupervisionPanel extends JPanel {
 
-    private final List<ExamRow> exams = new ArrayList<>();
-
-    // Bagian UI nya
     private JTable table;
     private DefaultTableModel model;
 
-    private JComboBox<String> cbSelectExam;
-    private JTextField txtTitle;
-    private JTextArea txtDescription;
+    private JComboBox<Exam> cbSelectExam;
+    private JTextField txtQuestionNo;
+    private JTextField txtParticipant;
+    private JTextField txtScore;
 
-    private JTabbedPane tabs;
-
-    private String supervisor_id;
-    private ExamDAO exam_dao;
+    private final String supervisor_id;
+    private final ExamDAO exam_dao;
 
     public ExamSupervisionPanel(String user_id) {
         supervisor_id = user_id;
         exam_dao = new ExamDAO();
 
         setLayout(new BorderLayout(10, 10));
-        initHeader(); // Select exam
-        // TODO: Display full title + description
-        initTable(); // All response, group by qs. number / user ID
-        initForm(); // Update answer, score
-        initTabs(); // Unneeded
+        initHeader();   // Select exam (siap ngab)
+        initTable();    // All response, group by qs. number / user ID (siap ngab)
+        initForm();     // Update answer, score (siap ngab)
+        //innitTabs nya dah kuhapus
     }
+
 
     private void initHeader() {
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
         cbSelectExam = new JComboBox<>();
+
         try {
-            exam_dao.readBySupervisor(supervisor_id).forEach(e -> cbSelectExam.addItem(e.getTitle()));
+            List<Exam> exams = exam_dao.readBySupervisor(supervisor_id);
+            for (Exam e : exams) {
+                cbSelectExam.addItem(e);
+            }
         } catch (Exception e) {
-            System.out.println("Gagal membaca semua exam: ");
-            e.printStackTrace();
+            showError(e);
         }
 
         if (cbSelectExam.getItemCount() == 0) {
-            cbSelectExam.addItem("NO EXAMS");
             cbSelectExam.setEnabled(false);
+            cbSelectExam.addItem(null);
         }
 
-        cbSelectExam.addActionListener(e -> filterTable());
+        cbSelectExam.addActionListener(e -> loadResponses());
 
         header.add(new JLabel("Select Exam:"));
         header.add(cbSelectExam);
@@ -70,10 +67,16 @@ public class ExamSupervisionPanel extends JPanel {
         add(header, BorderLayout.NORTH);
     }
 
-    // ================= TABLE =================
+
     private void initTable() {
         model = new DefaultTableModel(
-                new Object[] { "ID", "Title", "Description" }, 0) {
+                new Object[]{
+                        "Question No",
+                        "Participant ID",
+                        "Answer",
+                        "Score"
+                }, 0
+        ) {
             @Override
             public boolean isCellEditable(int r, int c) {
                 return false;
@@ -82,10 +85,11 @@ public class ExamSupervisionPanel extends JPanel {
 
         table = new JTable(model);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.getSelectionModel().addListSelectionListener(e -> loadSelectedExam());
+        table.getSelectionModel().addListSelectionListener(e -> loadSelectedResponse());
 
         add(new JScrollPane(table), BorderLayout.CENTER);
     }
+
 
     private void initForm() {
         JPanel form = new JPanel(new GridBagLayout());
@@ -93,59 +97,40 @@ public class ExamSupervisionPanel extends JPanel {
         c.insets = new Insets(4, 4, 4, 4);
         c.fill = GridBagConstraints.HORIZONTAL;
 
-        txtTitle = new JTextField(15);
-        txtDescription = new JTextArea(4, 15);
-        txtDescription.setLineWrap(true);
+        txtQuestionNo = new JTextField(10);
+        txtQuestionNo.setEditable(false);
 
-        JButton btnAdd = new JButton("Add");
-        JButton btnUpdate = new JButton("Update");
-        JButton btnDelete = new JButton("Delete");
-        JButton btnClear = new JButton("Clear");
+        txtParticipant = new JTextField(10);
+        txtParticipant.setEditable(false);
 
-        btnAdd.addActionListener(e -> addExam());
-        btnUpdate.addActionListener(e -> updateExam());
-        btnDelete.addActionListener(e -> deleteExam());
-        btnClear.addActionListener(e -> clearForm());
+        txtScore = new JTextField(5);
+
+        JButton btnUpdate = new JButton("Update Score");
+        btnUpdate.addActionListener(e -> updateScore());
 
         int y = 0;
-        c.gridx = 0;
-        c.gridy = y;
-        form.add(new JLabel("Title"), c);
+        c.gridx = 0; c.gridy = y;
+        form.add(new JLabel("Question No"), c);
         c.gridx = 1;
-        form.add(txtTitle, c);
+        form.add(txtQuestionNo, c);
 
         y++;
-        c.gridx = 0;
-        c.gridy = y;
-        form.add(new JLabel("Description"), c);
+        c.gridx = 0; c.gridy = y;
+        form.add(new JLabel("Participant"), c);
         c.gridx = 1;
-        form.add(new JScrollPane(txtDescription), c);
+        form.add(txtParticipant, c);
 
         y++;
-        c.gridx = 0;
-        c.gridy = y;
-        form.add(btnAdd, c);
+        c.gridx = 0; c.gridy = y;
+        form.add(new JLabel("Score"), c);
         c.gridx = 1;
+        form.add(txtScore, c);
+
+        y++;
+        c.gridx = 1; c.gridy = y;
         form.add(btnUpdate, c);
 
-        y++;
-        c.gridx = 0;
-        c.gridy = y;
-        form.add(btnDelete, c);
-        c.gridx = 1;
-        form.add(btnClear, c);
-
         add(form, BorderLayout.EAST);
-    }
-
-    private void initTabs() {
-        tabs = new JTabbedPane();
-
-        tabs.add("Questions", simpleLabel("Questions CRUD here"));
-        tabs.add("Participants", simpleLabel("Participants CRUD here"));
-        tabs.add("Supervisors", simpleLabel("Supervisors CRUD here"));
-
-        add(tabs, BorderLayout.SOUTH);
     }
 
     private JPanel simpleLabel(String text) {
@@ -154,87 +139,47 @@ public class ExamSupervisionPanel extends JPanel {
         return p;
     }
 
-    // Logic untuk CRUD nya coba mu lihat
-    private void addExam() {
-        String title = txtTitle.getText().trim();
-        String desc = txtDescription.getText().trim();
+    //bagian logic
 
-        if (title.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Title required");
+    //DAO nya belum kepanggil tapi rasanya udah siap untuk logicnya
+    private void loadResponses() {
+        model.setRowCount(0);
+
+        Exam selected = (Exam) cbSelectExam.getSelectedItem();
+        if (selected == null) return;
+
+        // TODO:
+        // ResultDAO.readByExamId(selected.getId())
+        // for each result:
+        // model.addRow(...)
+    }
+
+    private void loadSelectedResponse() {
+        int row = table.getSelectedRow();
+        if (row == -1) return;
+
+        txtQuestionNo.setText(model.getValueAt(row, 0).toString());
+        txtParticipant.setText(model.getValueAt(row, 1).toString());
+        txtScore.setText(model.getValueAt(row, 3).toString());
+    }
+
+    private void updateScore() {
+        int row = table.getSelectedRow();
+        if (row == -1) return;
+
+        String score = txtScore.getText().trim();
+
+        if (score.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Score required");
             return;
         }
 
-        String id = UUID.randomUUID().toString().substring(0, 8);
-        ExamRow exam = new ExamRow(id, title, desc);
-
-        exams.add(exam);
-        model.addRow(new Object[] { id, title });
-        cbSelectExam.addItem(id + " - " + title);
-
-        clearForm();
+        // TODO:
+        // ResultDAO.updateScore(...)
+        model.setValueAt(score, row, 3);
     }
 
-    private void updateExam() {
-        int row = table.getSelectedRow();
-        if (row == -1)
-            return;
-
-        ExamRow exam = exams.get(row);
-        exam.title = txtTitle.getText();
-        exam.description = txtDescription.getText();
-
-        model.setValueAt(exam.title, row, 1);
-    }
-
-    private void deleteExam() {
-        int row = table.getSelectedRow();
-        if (row == -1)
-            return;
-
-        exams.remove(row);
-        model.removeRow(row);
-        clearForm();
-        refreshComboBox();
-    }
-
-    private void loadSelectedExam() {
-        int row = table.getSelectedRow();
-        if (row == -1)
-            return;
-
-        ExamRow exam = exams.get(row);
-        txtTitle.setText(exam.title);
-        txtDescription.setText(exam.description);
-    }
-
-    private void clearForm() {
-        txtTitle.setText("");
-        txtDescription.setText("");
-        table.clearSelection();
-    }
-
-    private void filterTable() {
-        // mana tahu kepakek
-    }
-
-    private void refreshComboBox() {
-        cbSelectExam.removeAllItems();
-        cbSelectExam.addItem("ALL EXAMS");
-        for (ExamRow e : exams) {
-            cbSelectExam.addItem(e.id + " - " + e.title);
-        }
-    }
-
-    // untuk model
-    private static class ExamRow {
-        String id;
-        String title;
-        String description;
-
-        ExamRow(String id, String title, String description) {
-            this.id = id;
-            this.title = title;
-            this.description = description;
-        }
+    private void showError(Exception e) {
+        JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
     }
 }
