@@ -9,12 +9,13 @@ package exammanagementsystem.ui.result;
 import javax.swing.*;
 import java.awt.*;
 import exammanagementsystem.dao.ExamDAO;
+import exammanagementsystem.dao.ExamDAO.Exam;
 import exammanagementsystem.dao.ResultDAO;
 import javax.swing.table.DefaultTableModel;
 
 public class ResultPerParticipantPanel extends JPanel {
 
-    private JComboBox<ExamDAO.Exam> cbExam;
+    private JComboBox<Exam> cbExam;
     private JTable table;
     private DefaultTableModel model;
 
@@ -22,16 +23,28 @@ public class ResultPerParticipantPanel extends JPanel {
     private ResultDAO resultDAO = new ResultDAO();
 
     public ResultPerParticipantPanel(String userId) {
-        setLayout(new BorderLayout(10,10));
+        setLayout(new BorderLayout(10, 10));
 
         cbExam = new JComboBox<>();
         loadExamList(userId);
 
+        // Custom renderer to show item names intead of internal object names
+        cbExam.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(final JList list, Object value, final int index,
+                    final boolean isSelected,
+                    final boolean cellHasFocus) {
+
+                Exam value_exam = (Exam) value;
+                value = value_exam.getTitle();
+
+                return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            }
+        });
         cbExam.addActionListener(e -> loadResult(userId));
 
         model = new DefaultTableModel(
-            new String[]{"Question", "Answer", "Score"}, 0
-        );
+                new String[] { "Question", "Answer", "Score" }, 0);
         table = new JTable(model);
 
         add(cbExam, BorderLayout.NORTH);
@@ -43,22 +56,25 @@ public class ResultPerParticipantPanel extends JPanel {
             for (ExamDAO.Exam e : examDAO.readByParticipant(userId)) {
                 cbExam.addItem(e);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     private void loadResult(String userId) {
         model.setRowCount(0);
         ExamDAO.Exam exam = (ExamDAO.Exam) cbExam.getSelectedItem();
-        if (exam == null) return;
+        if (exam == null)
+            return;
 
         try {
             for (ResultDAO.Result r : resultDAO.readByExamAndUser(exam.getId(), userId)) {
-                model.addRow(new Object[]{
-                    r.getNumber(),
-                    r.getAnswer(),
-                    r.getScore()
+                model.addRow(new Object[] {
+                        r.getNumber(),
+                        r.getAnswer(),
+                        r.getScore()
                 });
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 }
