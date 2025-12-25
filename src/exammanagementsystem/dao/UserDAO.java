@@ -181,25 +181,30 @@ public class UserDAO {
 	}
 
 	public List<User> readSupervisorsByExamId(int id) throws SQLException {
-		List<User> result = new ArrayList<>();
-		String sql = """
-					SELECT users.id as id, users.role_id as role_id
-						JOIN (SELECT supervisors.user_id FROM supervisors WHERE supervisors.exam_id = ?) AS sub_supervisors
-					ON users.id = sub_supervisors.user_id
-				""";
-		try (Connection conn = DatabaseConnection.getConnection()) {
-			PreparedStatement find_exam_supervisors = conn.prepareStatement(sql);
-			find_exam_supervisors.setInt(1, id);
-			ResultSet found_users = find_exam_supervisors.executeQuery();
-			while (found_users.next()) {
-				result.add(new User(
-						found_users.getString("id"),
-						null,
-						Roles.fromInt(found_users.getInt("role_id"))));
-			}
-		}
-		return result;
-	}
+            List<User> result = new ArrayList<>();
+
+            String sql = """
+                SELECT users.id, users.role_id
+                FROM users
+                JOIN supervisors ON users.id = supervisors.user_id
+                WHERE supervisors.exam_id = ?
+            """;    
+
+            try (Connection conn = DatabaseConnection.getConnection()) {
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ps.setInt(1, id);
+                ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                result.add(new User(
+                    rs.getString("id"),
+                    null,
+                    Roles.fromInt(rs.getInt("role_id"))
+                ));
+            }
+        }
+    return result;
+}
 
 	public void update(User user) throws SQLException {
 		String sql = "UPDATE users SET users.id = ?, users.password = ?, users.role_id = ? WHERE users.id = ?";

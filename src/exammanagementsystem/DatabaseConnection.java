@@ -9,9 +9,9 @@ import java.sql.SQLException;
  */
 
 public class DatabaseConnection {
-	private static final String url = "jdbc:mysql://localhost/exam_management";
+	private static final String url = "jdbc:mysql://localhost:3306/exam_management";
 	private static final String user = "root";
-	private static final String pass = "";
+	private static final String pass = "Bakthi25";
 
 	public static Connection getConnection() {
 		try {
