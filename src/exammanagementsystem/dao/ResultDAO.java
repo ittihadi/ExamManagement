@@ -119,10 +119,11 @@ public class ResultDAO {
 	}
 
 	/**
-	 * Delete users and all the associated data: participation/supervision and
-	 * results
+	 * Deletes specific user result
 	 * 
-	 * @param id
+	 * @param exam_id
+	 * @param user_id
+	 * @param number
 	 * @throws SQLException
 	 */
 	public void delete(int exam_id, String user_id, int number) throws SQLException {
