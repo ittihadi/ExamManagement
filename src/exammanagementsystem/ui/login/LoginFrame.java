@@ -76,6 +76,7 @@ public class LoginFrame extends JFrame {
 
                 if (fetch_result.next()) {
                     dispose();
+                    String user = fetch_result.getString("user_id");
                     String role = fetch_result.getString("role_name");
 
                     switch (role) {
@@ -83,7 +84,7 @@ public class LoginFrame extends JFrame {
                             new AdminDashboard().setVisible(true);
                             break;
                         case "Supervisor":
-                            new SupervisorDashboard().setVisible(true);
+                            new SupervisorDashboard(user).setVisible(true);
                             break;
                         case "Participant":
                             new ParticipantDashboard().setVisible(true);
