@@ -20,6 +20,8 @@ public class ExamManagementPanel extends JPanel {
     private JTable table;
     private DefaultTableModel model;
 
+    private boolean isEditing;
+
     private JComboBox<Exam> cbSelectExam;
     private JTextField txtTitle;
     private JTextArea txtDescription;
@@ -29,8 +31,14 @@ public class ExamManagementPanel extends JPanel {
     private ExamDAO examDAO;
     private Exam selectedExam;
 
+    private JButton btnAdd;
+    private JButton btnUpdate;
+    private JButton btnDelete;
+    private JButton btnClear;
+
     public ExamManagementPanel() {
         examDAO = new ExamDAO();
+        isEditing = false;
         setLayout(new BorderLayout(10, 10));
 
         initHeader();
@@ -38,7 +46,6 @@ public class ExamManagementPanel extends JPanel {
         loadExamList();
         updateUIState(false);
     }
-
 
     private void initHeader() {
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -66,7 +73,6 @@ public class ExamManagementPanel extends JPanel {
         add(header, BorderLayout.NORTH);
     }
 
-
     private void initFormAndTabs() {
         JPanel form = new JPanel(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
@@ -78,10 +84,10 @@ public class ExamManagementPanel extends JPanel {
         txtDescription.setLineWrap(true);
         txtDescription.setWrapStyleWord(true);
 
-        JButton btnAdd = new JButton("Add");
-        JButton btnUpdate = new JButton("Update");
-        JButton btnDelete = new JButton("Delete");
-        JButton btnClear = new JButton("Clear");
+        btnAdd = new JButton("Add");
+        btnUpdate = new JButton("Update");
+        btnDelete = new JButton("Delete");
+        btnClear = new JButton("Clear");
 
         btnAdd.addActionListener(e -> addExam());
         btnUpdate.addActionListener(e -> updateExam());
@@ -89,25 +95,29 @@ public class ExamManagementPanel extends JPanel {
         btnClear.addActionListener(e -> clearForm());
 
         int y = 0;
-        c.gridx = 0; c.gridy = y;
+        c.gridx = 0;
+        c.gridy = y;
         form.add(new JLabel("Title"), c);
         c.gridx = 1;
         form.add(txtTitle, c);
 
         y++;
-        c.gridx = 0; c.gridy = y;
+        c.gridx = 0;
+        c.gridy = y;
         form.add(new JLabel("Description"), c);
         c.gridx = 1;
         form.add(new JScrollPane(txtDescription), c);
 
         y++;
-        c.gridx = 0; c.gridy = y;
+        c.gridx = 0;
+        c.gridy = y;
         form.add(btnAdd, c);
         c.gridx = 1;
         form.add(btnUpdate, c);
 
         y++;
-        c.gridx = 0; c.gridy = y;
+        c.gridx = 0;
+        c.gridy = y;
         form.add(btnDelete, c);
         c.gridx = 1;
         form.add(btnClear, c);
@@ -120,9 +130,10 @@ public class ExamManagementPanel extends JPanel {
         JSplitPane split = new JSplitPane(
                 JSplitPane.HORIZONTAL_SPLIT,
                 form,
-                tabs
-        );
+                tabs);
         split.setResizeWeight(0.3);
+
+        updateButtons();
 
         add(split, BorderLayout.CENTER);
     }
@@ -136,16 +147,21 @@ public class ExamManagementPanel extends JPanel {
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Failed load exams");
         }
+        cbSelectExam.setSelectedItem(null);
+        selectedExam = null;
+        reloadTabsForSelectedExam();
+        clearForm();
     }
-    
+
     private void reloadTabsForSelectedExam() {
         tabs.removeAll();
 
-        tabs.add("Questions", new QuestionManagementPanel(selectedExam.getId()));
-        tabs.add("Participants", new ParticipantAssignPanel(selectedExam.getId()));
-        tabs.add("Supervisors", new SupervisorAssignPanel(selectedExam.getId()));
-    }
+        int examId = selectedExam == null ? -1 : selectedExam.getId();
 
+        tabs.add("Questions", new QuestionManagementPanel(examId));
+        tabs.add("Participants", new ParticipantAssignPanel(examId));
+        tabs.add("Supervisors", new SupervisorAssignPanel(examId));
+    }
 
     private void onExamSelected() {
         selectedExam = (Exam) cbSelectExam.getSelectedItem();
@@ -157,6 +173,9 @@ public class ExamManagementPanel extends JPanel {
 
         txtTitle.setText(selectedExam.getTitle());
         txtDescription.setText(selectedExam.getDescription());
+
+        isEditing = true;
+        updateButtons();
 
         reloadTabsForSelectedExam();
         updateUIState(true);
@@ -174,8 +193,7 @@ public class ExamManagementPanel extends JPanel {
                     txtTitle.getText(),
                     txtDescription.getText(),
                     Timestamp.from(Instant.now()),
-                    null
-            );
+                    null);
 
             examDAO.create(exam);
             loadExamList();
@@ -187,7 +205,8 @@ public class ExamManagementPanel extends JPanel {
     }
 
     private void updateExam() {
-        if (selectedExam == null) return;
+        if (selectedExam == null)
+            return;
 
         try {
             selectedExam.setTitle(txtTitle.getText());
@@ -201,16 +220,17 @@ public class ExamManagementPanel extends JPanel {
     }
 
     private void deleteExam() {
-        if (selectedExam == null) return;
+        if (selectedExam == null)
+            return;
 
         int confirm = JOptionPane.showConfirmDialog(
                 this,
                 "Delete this exam?",
                 "Confirm",
-                JOptionPane.YES_NO_OPTION
-        );
+                JOptionPane.YES_NO_OPTION);
 
-        if (confirm != JOptionPane.YES_OPTION) return;
+        if (confirm != JOptionPane.YES_OPTION)
+            return;
 
         try {
             examDAO.delete(selectedExam.getId());
@@ -228,6 +248,11 @@ public class ExamManagementPanel extends JPanel {
         txtTitle.setText("");
         txtDescription.setText("");
         cbSelectExam.setSelectedItem(null);
+        selectedExam = null;
+
+        reloadTabsForSelectedExam();
+        isEditing = false;
+        updateButtons();
     }
 
     private void updateUIState(boolean enabled) {
@@ -239,5 +264,18 @@ public class ExamManagementPanel extends JPanel {
         p.add(new JLabel(text, SwingConstants.CENTER), BorderLayout.CENTER);
         return p;
     }
-}
 
+    private void updateButtons() {
+        if (isEditing) {
+            btnAdd.setEnabled(false);
+            btnUpdate.setEnabled(true);
+            btnDelete.setEnabled(true);
+            btnClear.setEnabled(true);
+        } else {
+            btnAdd.setEnabled(true);
+            btnUpdate.setEnabled(false);
+            btnDelete.setEnabled(false);
+            btnClear.setEnabled(false);
+        }
+    }
+}

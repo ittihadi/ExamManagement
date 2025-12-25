@@ -70,14 +70,14 @@ public class ExamDAO {
 	}
 
 	public void create(Exam exam) throws SQLException {
-		String sql = "INSERT INTO exams (id, title, description, start_time, end_time) VALUES (?, ?, ?, ?, ?)";
+		String sql = "INSERT INTO exams (title, description, start_time, end_time) VALUES (?, ?, ?, ?)";
 		try (Connection conn = DatabaseConnection.getConnection()) {
 			PreparedStatement create_exam = conn.prepareStatement(sql);
-			create_exam.setInt(1, exam.id);
-			create_exam.setString(2, exam.title);
-			create_exam.setString(3, exam.description);
-			create_exam.setTimestamp(4, exam.start_time);
-			create_exam.setTimestamp(5, exam.end_time);
+			// create_exam.setInt(1, exam.id);
+			create_exam.setString(1, exam.title);
+			create_exam.setString(2, exam.description);
+			create_exam.setTimestamp(3, exam.start_time);
+			create_exam.setTimestamp(4, exam.end_time);
 
 			create_exam.executeUpdate();
 		}

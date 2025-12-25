@@ -44,7 +44,6 @@ public class ExamSupervisionPanel extends JPanel {
         initForm();
     }
 
-
     private void initHeader() {
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
@@ -69,13 +68,12 @@ public class ExamSupervisionPanel extends JPanel {
                     value = exam.getTitle();
                 }
                 return super.getListCellRendererComponent(
-                    list, value, index, isSelected, cellHasFocus);
+                        list, value, index, isSelected, cellHasFocus);
             }
         });
 
         cbSelectExam.addActionListener(e -> loadResponses());
 
- 
         JButton btnScoring = new JButton("Open Scoring");
         btnScoring.addActionListener(e -> openScoring());
 
@@ -86,11 +84,9 @@ public class ExamSupervisionPanel extends JPanel {
         add(header, BorderLayout.NORTH);
     }
 
-
-
     private void initTable() {
         model = new DefaultTableModel(
-                new Object[]{
+                new Object[] {
                         "Question No",
                         "Participant ID",
                         "Answer",
@@ -105,7 +101,7 @@ public class ExamSupervisionPanel extends JPanel {
         table = new JTable(model);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.getSelectionModel()
-             .addListSelectionListener(e -> loadSelectedResponse());
+                .addListSelectionListener(e -> loadSelectedResponse());
 
         add(new JScrollPane(table), BorderLayout.CENTER);
     }
@@ -128,25 +124,29 @@ public class ExamSupervisionPanel extends JPanel {
         btnUpdate.addActionListener(e -> updateScore());
 
         int y = 0;
-        c.gridx = 0; c.gridy = y;
+        c.gridx = 0;
+        c.gridy = y;
         form.add(new JLabel("Question No"), c);
         c.gridx = 1;
         form.add(txtQuestionNo, c);
 
         y++;
-        c.gridx = 0; c.gridy = y;
+        c.gridx = 0;
+        c.gridy = y;
         form.add(new JLabel("Participant"), c);
         c.gridx = 1;
         form.add(txtParticipant, c);
 
         y++;
-        c.gridx = 0; c.gridy = y;
+        c.gridx = 0;
+        c.gridy = y;
         form.add(new JLabel("Score"), c);
         c.gridx = 1;
         form.add(txtScore, c);
 
         y++;
-        c.gridx = 1; c.gridy = y;
+        c.gridx = 1;
+        c.gridy = y;
         form.add(btnUpdate, c);
 
         add(form, BorderLayout.EAST);
@@ -156,13 +156,14 @@ public class ExamSupervisionPanel extends JPanel {
         model.setRowCount(0);
 
         Exam selected = (Exam) cbSelectExam.getSelectedItem();
-        if (selected == null) return;
+        if (selected == null)
+            return;
 
         try {
             List<Result> results = result_dao.readByExam(selected.getId());
 
             for (Result r : results) {
-                model.addRow(new Object[]{
+                model.addRow(new Object[] {
                         r.getNumber(),
                         r.getUser_id(),
                         r.getAnswer(),
@@ -174,7 +175,7 @@ public class ExamSupervisionPanel extends JPanel {
             showError(e);
         }
     }
-    
+
     private void openScoring() {
         Exam exam = (Exam) cbSelectExam.getSelectedItem();
         if (exam == null) {
@@ -193,10 +194,10 @@ public class ExamSupervisionPanel extends JPanel {
         frame.setVisible(true);
     }
 
-
     private void loadSelectedResponse() {
         int row = table.getSelectedRow();
-        if (row == -1) return;
+        if (row == -1)
+            return;
 
         txtQuestionNo.setText(model.getValueAt(row, 0).toString());
         txtParticipant.setText(model.getValueAt(row, 1).toString());
@@ -205,10 +206,12 @@ public class ExamSupervisionPanel extends JPanel {
 
     private void updateScore() {
         int row = table.getSelectedRow();
-        if (row == -1) return;
+        if (row == -1)
+            return;
 
         Exam exam = (Exam) cbSelectExam.getSelectedItem();
-        if (exam == null) return;
+        if (exam == null)
+            return;
 
         try {
             int questionNo = Integer.parseInt(txtQuestionNo.getText());
@@ -220,8 +223,7 @@ public class ExamSupervisionPanel extends JPanel {
                     userId,
                     questionNo,
                     model.getValueAt(row, 2).toString(),
-                    score
-            );
+                    score);
 
             result_dao.update(updated);
 
@@ -240,9 +242,8 @@ public class ExamSupervisionPanel extends JPanel {
                 this,
                 e.getMessage(),
                 "Error",
-                JOptionPane.ERROR_MESSAGE
-        );
+                JOptionPane.ERROR_MESSAGE);
         e.printStackTrace();
     }
-}
 
+}

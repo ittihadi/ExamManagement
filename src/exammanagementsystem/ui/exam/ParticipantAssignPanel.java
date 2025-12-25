@@ -88,9 +88,16 @@ public class ParticipantAssignPanel extends JPanel {
 
     private void addParticipant() {
         User user = (User) cbUsers.getSelectedItem();
-        if (user == null) return;
+        if (user == null)
+            return;
 
         try {
+            List<User> participants = userDAO.readParticipantsByExamId(examId);
+            for (User participant : participants) {
+                if (participant.getId().equals(user.getId()))
+                    return;
+            }
+
             userDAO.addToExam(user, examId);
             loadAssigned();
         } catch (SQLException e) {
@@ -100,7 +107,8 @@ public class ParticipantAssignPanel extends JPanel {
 
     private void removeParticipant() {
         User user = listAssigned.getSelectedValue();
-        if (user == null) return;
+        if (user == null)
+            return;
 
         try {
             userDAO.removeFromExam(user, examId);

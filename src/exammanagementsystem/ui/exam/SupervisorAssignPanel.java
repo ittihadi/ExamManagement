@@ -86,9 +86,16 @@ public class SupervisorAssignPanel extends JPanel {
 
     private void addSupervisor() {
         User user = (User) cbUsers.getSelectedItem();
-        if (user == null) return;
+        if (user == null)
+            return;
 
         try {
+            List<User> supervisors = userDAO.readSupervisorsByExamId(examId);
+            for (User supervisor : supervisors) {
+                if (supervisor.getId().equals(user.getId()))
+                    return;
+            }
+
             userDAO.addToExam(user, examId);
             loadAssigned();
         } catch (SQLException e) {
@@ -99,7 +106,8 @@ public class SupervisorAssignPanel extends JPanel {
 
     private void removeSupervisor() {
         User user = listAssigned.getSelectedValue();
-        if (user == null) return;
+        if (user == null)
+            return;
 
         try {
             userDAO.removeFromExam(user, examId);

@@ -9,8 +9,12 @@ package exammanagementsystem.ui.result;
 import javax.swing.*;
 import java.awt.*;
 import exammanagementsystem.dao.ExamDAO;
+import exammanagementsystem.dao.QuestionDAO;
 import exammanagementsystem.dao.ExamDAO.Exam;
+import exammanagementsystem.dao.QuestionDAO.Question;
 import exammanagementsystem.dao.ResultDAO;
+import exammanagementsystem.dao.ResultDAO.Result;
+
 import javax.swing.table.DefaultTableModel;
 
 public class ResultPerParticipantPanel extends JPanel {
@@ -21,12 +25,14 @@ public class ResultPerParticipantPanel extends JPanel {
 
     private ExamDAO examDAO = new ExamDAO();
     private ResultDAO resultDAO = new ResultDAO();
+    private QuestionDAO questionDAO = new QuestionDAO();
 
     public ResultPerParticipantPanel(String userId) {
         setLayout(new BorderLayout(10, 10));
 
         cbExam = new JComboBox<>();
         loadExamList(userId);
+        cbExam.setSelectedIndex(-1);
 
         // Custom renderer to show item names intead of internal object names
         cbExam.setRenderer(new DefaultListCellRenderer() {
@@ -36,7 +42,11 @@ public class ResultPerParticipantPanel extends JPanel {
                     final boolean cellHasFocus) {
 
                 Exam value_exam = (Exam) value;
-                value = value_exam.getTitle();
+                if (value_exam == null) {
+                    value = "SELECT EXAM";
+                } else {
+                    value = value_exam.getTitle();
+                }
 
                 return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
             }
@@ -44,7 +54,7 @@ public class ResultPerParticipantPanel extends JPanel {
         cbExam.addActionListener(e -> loadResult(userId));
 
         model = new DefaultTableModel(
-                new String[] { "Question", "Answer", "Score" }, 0);
+                new String[] { "No.", "Question", "Answer", "Score" }, 0);
         table = new JTable(model);
 
         add(cbExam, BorderLayout.NORTH);
@@ -68,8 +78,12 @@ public class ResultPerParticipantPanel extends JPanel {
 
         try {
             for (ResultDAO.Result r : resultDAO.readByExamAndUser(exam.getId(), userId)) {
+                int qsNum = r.getNumber();
+                Question qs = questionDAO.readByExamNumber(exam.getId(), qsNum);
+
                 model.addRow(new Object[] {
                         r.getNumber(),
+                        qs.getContent().replace('\n', ' '),
                         r.getAnswer(),
                         r.getScore()
                 });
