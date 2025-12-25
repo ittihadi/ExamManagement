@@ -106,6 +106,7 @@ public class ExamDAO {
 		String sql = "SELECT * FROM exams WHERE exams.id = ?";
 		try (Connection conn = DatabaseConnection.getConnection()) {
 			PreparedStatement find_exam = conn.prepareStatement(sql);
+			find_exam.setInt(1, id);
 			ResultSet exam = find_exam.executeQuery();
 			if (exam.next()) {
 				result = new Exam(
