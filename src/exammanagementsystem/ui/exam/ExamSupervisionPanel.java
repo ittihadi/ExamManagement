@@ -13,6 +13,7 @@ import exammanagementsystem.dao.ExamDAO;
 import exammanagementsystem.dao.ExamDAO.Exam;
 import exammanagementsystem.dao.ResultDAO;
 import exammanagementsystem.dao.ResultDAO.Result;
+import exammanagementsystem.ui.result.ScoringPanel;
 
 import java.awt.*;
 import java.sql.SQLException;
@@ -43,7 +44,6 @@ public class ExamSupervisionPanel extends JPanel {
         initForm();
     }
 
-    // ================= HEADER =================
 
     private void initHeader() {
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -59,10 +59,6 @@ public class ExamSupervisionPanel extends JPanel {
             showError(e);
         }
 
-        if (cbSelectExam.getItemCount() == 0) {
-            cbSelectExam.setEnabled(false);
-        }
-
         cbSelectExam.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(
@@ -73,19 +69,24 @@ public class ExamSupervisionPanel extends JPanel {
                     value = exam.getTitle();
                 }
                 return super.getListCellRendererComponent(
-                        list, value, index, isSelected, cellHasFocus);
+                    list, value, index, isSelected, cellHasFocus);
             }
         });
 
         cbSelectExam.addActionListener(e -> loadResponses());
 
+ 
+        JButton btnScoring = new JButton("Open Scoring");
+        btnScoring.addActionListener(e -> openScoring());
+
         header.add(new JLabel("Select Exam:"));
         header.add(cbSelectExam);
+        header.add(btnScoring); // 🔥
 
         add(header, BorderLayout.NORTH);
     }
 
-    // ================= TABLE =================
+
 
     private void initTable() {
         model = new DefaultTableModel(
@@ -108,8 +109,6 @@ public class ExamSupervisionPanel extends JPanel {
 
         add(new JScrollPane(table), BorderLayout.CENTER);
     }
-
-    // ================= FORM =================
 
     private void initForm() {
         JPanel form = new JPanel(new GridBagLayout());
@@ -153,8 +152,6 @@ public class ExamSupervisionPanel extends JPanel {
         add(form, BorderLayout.EAST);
     }
 
-    // ================= LOGIC =================
-
     private void loadResponses() {
         model.setRowCount(0);
 
@@ -177,6 +174,25 @@ public class ExamSupervisionPanel extends JPanel {
             showError(e);
         }
     }
+    
+    private void openScoring() {
+        Exam exam = (Exam) cbSelectExam.getSelectedItem();
+        if (exam == null) {
+            JOptionPane.showMessageDialog(this, "Please select exam first");
+            return;
+        }
+
+        JFrame frame = new JFrame("Scoring - " + exam.getTitle());
+        ScoringPanel scoringPanel = new ScoringPanel();
+        scoringPanel.setExamContext(exam.getId());
+
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.add(scoringPanel);
+        frame.setSize(900, 600);
+        frame.setLocationRelativeTo(this);
+        frame.setVisible(true);
+    }
+
 
     private void loadSelectedResponse() {
         int row = table.getSelectedRow();
