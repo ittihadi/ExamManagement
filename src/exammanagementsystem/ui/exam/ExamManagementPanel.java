@@ -6,7 +6,6 @@ package exammanagementsystem.ui.exam;
  * @author bakthiananda
  */
 
-//coba mu lihat dulu hadi, aku gak bisa nengok outputnya masalahnya
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -18,7 +17,6 @@ public class ExamManagementPanel extends JPanel {
 
     private final List<ExamRow> exams = new ArrayList<>();
 
-    // Bagian UI nya
     private JTable table;
     private DefaultTableModel model;
 
@@ -34,14 +32,15 @@ public class ExamManagementPanel extends JPanel {
         initTable();
         initForm();
         initTabs();
+        updateUIState(false);
     }
 
     private void initHeader() {
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
         cbSelectExam = new JComboBox<>();
-        cbSelectExam.addItem("ALL EXAMS");
-        cbSelectExam.addActionListener(e -> filterTable());
+        cbSelectExam.addItem("-- Select Exam --");
+        cbSelectExam.addActionListener(e -> onExamSelected());
 
         header.add(new JLabel("Select Exam:"));
         header.add(cbSelectExam);
@@ -49,7 +48,6 @@ public class ExamManagementPanel extends JPanel {
         add(header, BorderLayout.NORTH);
     }
 
-    // ================= TABLE =================
     private void initTable() {
         model = new DefaultTableModel(
             new Object[]{"ID", "Title"}, 0
@@ -63,8 +61,6 @@ public class ExamManagementPanel extends JPanel {
         table = new JTable(model);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.getSelectionModel().addListSelectionListener(e -> loadSelectedExam());
-
-        add(new JScrollPane(table), BorderLayout.CENTER);
     }
 
     private void initForm() {
@@ -76,6 +72,7 @@ public class ExamManagementPanel extends JPanel {
         txtTitle = new JTextField(15);
         txtDescription = new JTextArea(4, 15);
         txtDescription.setLineWrap(true);
+        txtDescription.setWrapStyleWord(true);
 
         JButton btnAdd = new JButton("Add");
         JButton btnUpdate = new JButton("Update");
@@ -103,15 +100,25 @@ public class ExamManagementPanel extends JPanel {
         c.gridx = 0; c.gridy = y; form.add(btnDelete, c);
         c.gridx = 1; form.add(btnClear, c);
 
-        add(form, BorderLayout.EAST);
+        JPanel right = new JPanel(new BorderLayout());
+        right.add(form, BorderLayout.NORTH);
+
+        JSplitPane split = new JSplitPane(
+            JSplitPane.HORIZONTAL_SPLIT,
+            new JScrollPane(table),
+            right
+        );
+        split.setResizeWeight(0.65);
+
+        add(split, BorderLayout.CENTER);
     }
 
     private void initTabs() {
         tabs = new JTabbedPane();
 
-        tabs.add("Questions", simpleLabel("Questions CRUD here"));
-        tabs.add("Participants", simpleLabel("Participants CRUD here"));
-        tabs.add("Supervisors", simpleLabel("Supervisors CRUD here"));
+        tabs.add("Questions", simpleLabel("Questions CRUD (select exam first)"));
+        tabs.add("Participants", simpleLabel("Participants CRUD (per exam)"));
+        tabs.add("Supervisors", simpleLabel("Supervisors CRUD (per exam)"));
 
         add(tabs, BorderLayout.SOUTH);
     }
@@ -122,7 +129,7 @@ public class ExamManagementPanel extends JPanel {
         return p;
     }
 
-    // Logic untuk CRUD nya coba mu lihat
+    // Bagian Logic
     private void addExam() {
         String title = txtTitle.getText().trim();
         String desc = txtDescription.getText().trim();
@@ -151,6 +158,7 @@ public class ExamManagementPanel extends JPanel {
         exam.description = txtDescription.getText();
 
         model.setValueAt(exam.title, row, 1);
+        refreshComboBox();
     }
 
     private void deleteExam() {
@@ -161,6 +169,7 @@ public class ExamManagementPanel extends JPanel {
         model.removeRow(row);
         clearForm();
         refreshComboBox();
+        updateUIState(false);
     }
 
     private void loadSelectedExam() {
@@ -170,6 +179,7 @@ public class ExamManagementPanel extends JPanel {
         ExamRow exam = exams.get(row);
         txtTitle.setText(exam.title);
         txtDescription.setText(exam.description);
+        updateUIState(true);
     }
 
     private void clearForm() {
@@ -178,19 +188,28 @@ public class ExamManagementPanel extends JPanel {
         table.clearSelection();
     }
 
-    private void filterTable() {
-        // mana tahu kepakek
+    private void onExamSelected() {
+        if (cbSelectExam.getSelectedIndex() <= 0) {
+            updateUIState(false);
+        } else {
+            updateUIState(true);
+        }
+    }
+
+    private void updateUIState(boolean enabled) {
+        txtTitle.setEnabled(enabled);
+        txtDescription.setEnabled(enabled);
+        tabs.setEnabled(enabled);
     }
 
     private void refreshComboBox() {
         cbSelectExam.removeAllItems();
-        cbSelectExam.addItem("ALL EXAMS");
+        cbSelectExam.addItem("-- Select Exam --");
         for (ExamRow e : exams) {
             cbSelectExam.addItem(e.id + " - " + e.title);
         }
     }
 
-    //untuk model
     private static class ExamRow {
         String id;
         String title;
