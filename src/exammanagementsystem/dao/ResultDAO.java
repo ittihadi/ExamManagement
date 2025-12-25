@@ -138,29 +138,49 @@ public class ResultDAO {
 			delete_result.executeUpdate();
 		}
 	}
-        
-        public List<Result> readByExamAndUser(int examId, String userId) throws SQLException {
-            List<Result> list = new ArrayList<>();
-            String sql = "SELECT * FROM results WHERE exam_id = ? AND user_id = ?";
 
-            try (Connection conn = DatabaseConnection.getConnection()) {
-                PreparedStatement ps = conn.prepareStatement(sql);
-                ps.setInt(1, examId);
-                ps.setString(2, userId);
-                ResultSet rs = ps.executeQuery();
+	public List<Result> readByExamAndUser(int examId, String userId) throws SQLException {
+		List<Result> list = new ArrayList<>();
+		String sql = "SELECT * FROM results WHERE exam_id = ? AND user_id = ?";
 
-                while (rs.next()) {
-                    list.add(new Result(
-                        rs.getInt("exam_id"),
-                        rs.getString("user_id"),
-                        rs.getInt("number"),
-                        rs.getString("answer"),
-                        rs.getFloat("score")
-                    ));
-                }
-            }
-            return list;
-        }
-        
-        
+		try (Connection conn = DatabaseConnection.getConnection()) {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, examId);
+			ps.setString(2, userId);
+			ResultSet rs = ps.executeQuery();
+
+			while (rs.next()) {
+				list.add(new Result(
+						rs.getInt("exam_id"),
+						rs.getString("user_id"),
+						rs.getInt("number"),
+						rs.getString("answer"),
+						rs.getFloat("score")));
+			}
+		}
+		return list;
+	}
+
+	public Result readByExamUserNumber(int examId, String userId, int questionNumber) throws SQLException {
+		Result result = null;
+		String sql = "SELECT * FROM results WHERE exam_id = ? AND user_id = ? AND number = ?";
+
+		try (Connection conn = DatabaseConnection.getConnection()) {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, examId);
+			ps.setString(2, userId);
+			ps.setInt(3, questionNumber);
+			ResultSet rs = ps.executeQuery();
+
+			if (rs.next()) {
+				result = new Result(
+						rs.getInt("exam_id"),
+						rs.getString("user_id"),
+						rs.getInt("number"),
+						rs.getString("answer"),
+						rs.getFloat("score"));
+			}
+		}
+		return result;
+	}
 }
