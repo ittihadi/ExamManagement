@@ -100,6 +100,24 @@ public class UserDAO {
 		return result;
 	}
 
+	public User readById(String id) throws SQLException {
+		User result = null;
+		String sql = "SELECT * FROM users WHERE users.id = ?";
+		try (Connection conn = DatabaseConnection.getConnection()) {
+			PreparedStatement find_user = conn.prepareStatement(sql);
+			find_user.setString(1, id);
+			ResultSet found_users = find_user.executeQuery();
+			if (found_users.next()) {
+				result = new User(
+						found_users.getString("id"),
+						found_users.getString("password"),
+						Roles.fromInt(found_users.getInt("role_id")));
+			}
+		}
+
+		return result;
+	}
+
 	public List<User> readParticipantsByExamId(int id) throws SQLException {
 		List<User> result = new ArrayList<>();
 		String sql = """
