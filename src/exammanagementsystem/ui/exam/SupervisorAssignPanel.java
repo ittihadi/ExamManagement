@@ -79,6 +79,7 @@ public class SupervisorAssignPanel extends JPanel {
             List<User> users = userDAO.readSupervisorsByExamId(examId);
             users.forEach(listModel::addElement);
         } catch (SQLException e) {
+            e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Failed load supervisors");
         }
     }
@@ -91,6 +92,7 @@ public class SupervisorAssignPanel extends JPanel {
             userDAO.addToExam(user, examId);
             loadAssigned();
         } catch (SQLException e) {
+            e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Failed add supervisor");
         }
     }
