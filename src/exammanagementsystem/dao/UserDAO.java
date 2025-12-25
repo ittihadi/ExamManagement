@@ -84,6 +84,46 @@ public class UserDAO {
 		}
 	}
 
+	public void addToExam(User user, int exam_id) throws SQLException {
+		String sql = null;
+		if (user.getRole() == Roles.PARTICIPANT) {
+			sql = "INSERT INTO participants (exam_id, user_id) VALUES (?, ?)";
+		} else if (user.getRole() == Roles.SUPERVISOR) {
+			sql = "INSERT INTO supervisors (exam_id, user_id) VALUES (?, ?)";
+		} else {
+			System.out.println("Invalid user role for assignment");
+			return;
+		}
+
+		try (Connection conn = DatabaseConnection.getConnection()) {
+			PreparedStatement add_user = conn.prepareStatement(sql);
+			add_user.setInt(1, exam_id);
+			add_user.setString(2, user.id);
+
+			add_user.executeUpdate();
+		}
+	}
+
+	public void removeFromExam(User user, int exam_id) throws SQLException {
+		String sql = null;
+		if (user.getRole() == Roles.PARTICIPANT) {
+			sql = "DELETE FROM participants WHERE participants.exam_id = ? AND participants.user_id = ?";
+		} else if (user.getRole() == Roles.SUPERVISOR) {
+			sql = "DELETE FROM supervisors WHERE supervisors.exam_id = ? AND supervisors.user_id = ?";
+		} else {
+			System.out.println("Invalid user role for removal");
+			return;
+		}
+
+		try (Connection conn = DatabaseConnection.getConnection()) {
+			PreparedStatement remove_user = conn.prepareStatement(sql);
+			remove_user.setInt(1, exam_id);
+			remove_user.setString(2, user.id);
+
+			remove_user.executeUpdate();
+		}
+	}
+
 	public List<User> readNonAdmins() throws SQLException {
 		List<User> result = new ArrayList<>();
 		String sql = "SELECT users.id as id, users.password as password, users.role_id as role_id FROM users WHERE users.role_id <> 1";
