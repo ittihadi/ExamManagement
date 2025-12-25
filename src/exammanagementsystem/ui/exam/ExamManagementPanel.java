@@ -8,18 +8,14 @@ package exammanagementsystem.ui.exam;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-
 import exammanagementsystem.dao.ExamDAO;
 import exammanagementsystem.dao.ExamDAO.Exam;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.sql.Timestamp;
+import java.time.Instant;
 
 public class ExamManagementPanel extends JPanel {
-
-    private final List<ExamRow> exams = new ArrayList<>();
 
     private JTable table;
     private DefaultTableModel model;
@@ -30,54 +26,39 @@ public class ExamManagementPanel extends JPanel {
 
     private JTabbedPane tabs;
 
-    private ExamDAO exam_dao;
+    private ExamDAO examDAO;
+    private Exam selectedExam;
 
     public ExamManagementPanel() {
-        exam_dao = new ExamDAO();
-
+        examDAO = new ExamDAO();
         setLayout(new BorderLayout(10, 10));
-        // TODO: Ganti layounya
-        // tabel exam ditengah ganti aja jadi Questions/participants/supervisors
 
         initHeader();
-        initTable();
-        initForm();
-        initTabs();
+        initFormAndTabs();
+        loadExamList();
         updateUIState(false);
     }
+
 
     private void initHeader() {
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
         cbSelectExam = new JComboBox<>();
-
-        try {
-            exam_dao.readAll().forEach(ex -> cbSelectExam.addItem(ex));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // cbSelectExam.addItem("-- Select Exam --");
-        cbSelectExam.addActionListener(e -> onExamSelected());
-
-        if (cbSelectExam.getItemCount() == 0) {
-            cbSelectExam.setEnabled(false);
-            cbSelectExam.addItem(null);
-        }
-
-        // Custom renderer to show item names intead of internal object names
         cbSelectExam.setRenderer(new DefaultListCellRenderer() {
             @Override
-            public Component getListCellRendererComponent(final JList list, Object value, final int index,
-                    final boolean isSelected,
-                    final boolean cellHasFocus) {
+            public Component getListCellRendererComponent(
+                    JList<?> list, Object value, int index,
+                    boolean isSelected, boolean cellHasFocus) {
 
-                Exam value_exam = (Exam) value;
-                value = value_exam.getTitle();
-
-                return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Exam exam) {
+                    value = exam.getTitle();
+                }
+                return super.getListCellRendererComponent(
+                        list, value, index, isSelected, cellHasFocus);
             }
         });
+
+        cbSelectExam.addActionListener(e -> onExamSelected());
 
         header.add(new JLabel("Select Exam:"));
         header.add(cbSelectExam);
@@ -85,21 +66,9 @@ public class ExamManagementPanel extends JPanel {
         add(header, BorderLayout.NORTH);
     }
 
-    private void initTable() {
-        model = new DefaultTableModel(
-                new Object[] { "ID", "Title" }, 0) {
-            @Override
-            public boolean isCellEditable(int r, int c) {
-                return false;
-            }
-        };
 
-        table = new JTable(model);
-        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.getSelectionModel().addListSelectionListener(e -> loadSelectedExam());
-    }
-
-    private void initForm() {
+    private void initFormAndTabs() {
+        // ===== FORM =====
         JPanel form = new JPanel(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
         c.insets = new Insets(4, 4, 4, 4);
@@ -121,129 +90,133 @@ public class ExamManagementPanel extends JPanel {
         btnClear.addActionListener(e -> clearForm());
 
         int y = 0;
-        c.gridx = 0;
-        c.gridy = y;
+        c.gridx = 0; c.gridy = y;
         form.add(new JLabel("Title"), c);
         c.gridx = 1;
         form.add(txtTitle, c);
 
         y++;
-        c.gridx = 0;
-        c.gridy = y;
+        c.gridx = 0; c.gridy = y;
         form.add(new JLabel("Description"), c);
         c.gridx = 1;
         form.add(new JScrollPane(txtDescription), c);
 
         y++;
-        c.gridx = 0;
-        c.gridy = y;
+        c.gridx = 0; c.gridy = y;
         form.add(btnAdd, c);
         c.gridx = 1;
         form.add(btnUpdate, c);
 
         y++;
-        c.gridx = 0;
-        c.gridy = y;
+        c.gridx = 0; c.gridy = y;
         form.add(btnDelete, c);
         c.gridx = 1;
         form.add(btnClear, c);
 
-        JPanel right = new JPanel(new BorderLayout());
-        right.add(form, BorderLayout.NORTH);
-
-        JSplitPane split = new JSplitPane(
-                JSplitPane.HORIZONTAL_SPLIT,
-                new JScrollPane(table),
-                right);
-        split.setResizeWeight(0.65);
-
-        add(split, BorderLayout.CENTER);
-    }
-
-    private void initTabs() {
         tabs = new JTabbedPane();
-
         tabs.add("Questions", simpleLabel("Questions CRUD (select exam first)"));
         tabs.add("Participants", simpleLabel("Participants CRUD (per exam)"));
         tabs.add("Supervisors", simpleLabel("Supervisors CRUD (per exam)"));
 
-        add(tabs, BorderLayout.SOUTH);
+        JSplitPane split = new JSplitPane(
+                JSplitPane.HORIZONTAL_SPLIT,
+                form,
+                tabs
+        );
+        split.setResizeWeight(0.3);
+
+        add(split, BorderLayout.CENTER);
     }
 
-    private JPanel simpleLabel(String text) {
-        JPanel p = new JPanel(new BorderLayout());
-        p.add(new JLabel(text, SwingConstants.CENTER), BorderLayout.CENTER);
-        return p;
+    private void loadExamList() {
+        cbSelectExam.removeAllItems();
+        try {
+            for (Exam exam : examDAO.readAll()) {
+                cbSelectExam.addItem(exam);
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Failed load exams");
+        }
     }
 
-    // Bagian Logic
+    private void onExamSelected() {
+        selectedExam = (Exam) cbSelectExam.getSelectedItem();
+        if (selectedExam == null) {
+            updateUIState(false);
+            return;
+        }
+
+        txtTitle.setText(selectedExam.getTitle());
+        txtDescription.setText(selectedExam.getDescription());
+        updateUIState(true);
+    }
+
     private void addExam() {
-        String title = txtTitle.getText().trim();
-        String desc = txtDescription.getText().trim();
-
-        if (title.isEmpty()) {
+        if (txtTitle.getText().isBlank()) {
             JOptionPane.showMessageDialog(this, "Title required");
             return;
         }
 
-        String id = UUID.randomUUID().toString().substring(0, 8);
-        ExamRow exam = new ExamRow(id, title, desc);
+        try {
+            Exam exam = new Exam(
+                    (int) (System.currentTimeMillis() / 1000),
+                    txtTitle.getText(),
+                    txtDescription.getText(),
+                    Timestamp.from(Instant.now()),
+                    null
+            );
 
-        exams.add(exam);
-        model.addRow(new Object[] { id, title });
-        // cbSelectExam.addItem(id + " - " + title);
+            examDAO.create(exam);
+            loadExamList();
+            clearForm();
 
-        clearForm();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Failed create exam");
+        }
     }
 
     private void updateExam() {
-        int row = table.getSelectedRow();
-        if (row == -1)
-            return;
+        if (selectedExam == null) return;
 
-        ExamRow exam = exams.get(row);
-        exam.title = txtTitle.getText();
-        exam.description = txtDescription.getText();
+        try {
+            selectedExam.setTitle(txtTitle.getText());
+            selectedExam.setDescription(txtDescription.getText());
+            examDAO.update(selectedExam);
+            loadExamList();
 
-        model.setValueAt(exam.title, row, 1);
-        refreshComboBox();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Failed update exam");
+        }
     }
 
     private void deleteExam() {
-        int row = table.getSelectedRow();
-        if (row == -1)
-            return;
+        if (selectedExam == null) return;
 
-        exams.remove(row);
-        model.removeRow(row);
-        clearForm();
-        refreshComboBox();
-        updateUIState(false);
-    }
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Delete this exam?",
+                "Confirm",
+                JOptionPane.YES_NO_OPTION
+        );
 
-    private void loadSelectedExam() {
-        int row = table.getSelectedRow();
-        if (row == -1)
-            return;
+        if (confirm != JOptionPane.YES_OPTION) return;
 
-        ExamRow exam = exams.get(row);
-        txtTitle.setText(exam.title);
-        txtDescription.setText(exam.description);
-        updateUIState(true);
+        try {
+            examDAO.delete(selectedExam.getId());
+            selectedExam = null;
+            loadExamList();
+            clearForm();
+            updateUIState(false);
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Failed delete exam");
+        }
     }
 
     private void clearForm() {
         txtTitle.setText("");
         txtDescription.setText("");
-        table.clearSelection();
-    }
-
-    private void onExamSelected() {
-        if (cbSelectExam.getSelectedIndex() <= 0) {
-            updateUIState(false);
-        } else {
-            updateUIState(true);
-        }
+        cbSelectExam.setSelectedItem(null);
     }
 
     private void updateUIState(boolean enabled) {
@@ -252,23 +225,10 @@ public class ExamManagementPanel extends JPanel {
         tabs.setEnabled(enabled);
     }
 
-    private void refreshComboBox() {
-        cbSelectExam.removeAllItems();
-        // cbSelectExam.addItem("-- Select Exam --");
-        // for (ExamRow e : exams) {
-        // cbSelectExam.addItem(e.id + " - " + e.title);
-        // }
-    }
-
-    private static class ExamRow {
-        String id;
-        String title;
-        String description;
-
-        ExamRow(String id, String title, String description) {
-            this.id = id;
-            this.title = title;
-            this.description = description;
-        }
+    private JPanel simpleLabel(String text) {
+        JPanel p = new JPanel(new BorderLayout());
+        p.add(new JLabel(text, SwingConstants.CENTER), BorderLayout.CENTER);
+        return p;
     }
 }
+
