@@ -158,7 +158,7 @@ public class QuestionManagementPanel extends JPanel {
                 model.addRow(new Object[] {
                         q.getNumber(),
                         q.getType(),
-                        q.getContent(),
+                        q.getContent().replace("\n", " "),
                         q.getCorrectAnswer()
                 });
             }

@@ -18,11 +18,10 @@ public class AvailableExamPanel extends JPanel {
     private DefaultTableModel model;
 
     public AvailableExamPanel(String userId) {
-        setLayout(new BorderLayout(10,10));
+        setLayout(new BorderLayout(10, 10));
 
         model = new DefaultTableModel(
-            new String[]{"Exam ID", "Title", "Start", "End"}, 0
-        );
+                new String[] { "Exam ID", "Title", "Start", "End" }, 0);
         table = new JTable(model);
 
         loadData(userId);
@@ -33,11 +32,11 @@ public class AvailableExamPanel extends JPanel {
     private void loadData(String userId) {
         try {
             for (ExamDAO.Exam e : examDAO.readByParticipant(userId)) {
-                model.addRow(new Object[]{
-                    e.getId(),
-                    e.getTitle(),
-                    e.getStart_time(),
-                    e.getEnd_time()
+                model.addRow(new Object[] {
+                        e.getId(),
+                        e.getTitle(),
+                        e.getStartTime(),
+                        e.getEndTime()
                 });
             }
         } catch (Exception ex) {
