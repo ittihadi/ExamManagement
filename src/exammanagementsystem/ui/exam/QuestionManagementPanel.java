@@ -50,6 +50,7 @@ public class QuestionManagementPanel extends JPanel {
         loadQuestions();
     }
 
+    @SuppressWarnings("unused")
     private void initTable() {
         model = new DefaultTableModel(
                 new Object[] { "Number", "Type", "Question", "Correct Answer" }, 0) {
@@ -66,6 +67,7 @@ public class QuestionManagementPanel extends JPanel {
         add(new JScrollPane(table), BorderLayout.CENTER);
     }
 
+    @SuppressWarnings("unused")
     private void initForm() {
         JPanel form = new JPanel(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();

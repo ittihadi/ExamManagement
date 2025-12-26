@@ -39,6 +39,7 @@ public class UserManagementPanel extends JPanel {
 
     /* ================= TABLE ================= */
 
+    @SuppressWarnings("unused")
     private void initTable() {
         model = new DefaultTableModel(
                 new Object[] { "User ID", "Password", "Role" }, 0) {
@@ -71,6 +72,7 @@ public class UserManagementPanel extends JPanel {
         }
     }
 
+    @SuppressWarnings("unused")
     private void initForm() {
         JPanel form = new JPanel(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();

@@ -35,6 +35,7 @@ public class ParticipantAssignPanel extends JPanel {
         loadAssigned();
     }
 
+    @SuppressWarnings("unused")
     private void initUI() {
         // untuk dropdown
         JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));

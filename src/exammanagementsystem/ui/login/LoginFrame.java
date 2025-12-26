@@ -20,6 +20,7 @@ import java.sql.SQLException;
 
 public class LoginFrame extends JFrame {
 
+    @SuppressWarnings("unused")
     public LoginFrame() {
         setTitle("Exam Management System - Login");
         setSize(400, 260);

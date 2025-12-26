@@ -63,6 +63,7 @@ public class ExamSupervisionPanel extends JPanel {
         initForm();
     }
 
+    @SuppressWarnings("unused")
     private void initHeader() {
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
@@ -106,6 +107,7 @@ public class ExamSupervisionPanel extends JPanel {
         add(header, BorderLayout.NORTH);
     }
 
+    @SuppressWarnings("unused")
     private void initTable() {
         model = new DefaultTableModel(
                 new Object[] {
@@ -128,6 +130,7 @@ public class ExamSupervisionPanel extends JPanel {
         add(new JScrollPane(table), BorderLayout.CENTER);
     }
 
+    @SuppressWarnings("unused")
     private void initForm() {
         JPanel form = new JPanel(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();

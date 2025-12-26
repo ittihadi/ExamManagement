@@ -1,29 +1,30 @@
 package exammanagementsystem.ui.result;
 
+import java.awt.BorderLayout;
+import java.awt.Font;
+import java.sql.SQLException;
+import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+
+import exammanagementsystem.dao.QuestionDAO;
+import exammanagementsystem.dao.QuestionDAO.Question;
+
+import exammanagementsystem.dao.ResultDAO;
+import exammanagementsystem.dao.ResultDAO.Result;
+import exammanagementsystem.dao.UserDAO;
+
 /**
  *
  * @author ittihadi
  * @author bakthiananda
  */
-
-import exammanagementsystem.dao.ResultDAO;
-import exammanagementsystem.dao.UserDAO;
-import exammanagementsystem.dao.ResultDAO.Result;
-import exammanagementsystem.dao.QuestionDAO;
-import exammanagementsystem.dao.QuestionDAO.Question;
-import exammanagementsystem.dao.QuestionDAO.QuestionType;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-
-import java.awt.BorderLayout;
-import java.awt.Font;
-
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-
 public class ScoringPanel extends JPanel {
 
     private final ResultDAO resultDAO = new ResultDAO();

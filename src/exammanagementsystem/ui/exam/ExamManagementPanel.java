@@ -1,28 +1,39 @@
 package exammanagementsystem.ui.exam;
 
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDateTime;
+
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+
+import exammanagementsystem.dao.ExamDAO;
+import exammanagementsystem.dao.ExamDAO.Exam;
+
 /**
  *
  * @author ittihadi
  * @author bakthiananda
  */
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import exammanagementsystem.dao.ExamDAO;
-import exammanagementsystem.dao.ExamDAO.Exam;
-
-import java.awt.*;
-import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.Calendar;
-
 public class ExamManagementPanel extends JPanel {
-
-    private JTable table;
-    private DefaultTableModel model;
-
     private boolean isEditing;
 
     private JComboBox<Exam> cbSelectExam;
@@ -62,6 +73,7 @@ public class ExamManagementPanel extends JPanel {
         updateUIState(false);
     }
 
+    @SuppressWarnings("unused")
     private void initHeader() {
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
@@ -88,6 +100,7 @@ public class ExamManagementPanel extends JPanel {
         add(header, BorderLayout.NORTH);
     }
 
+    @SuppressWarnings("unused")
     private void initFormAndTabs() {
         JPanel form = new JPanel(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();

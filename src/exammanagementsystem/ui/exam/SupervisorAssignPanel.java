@@ -35,6 +35,7 @@ public class SupervisorAssignPanel extends JPanel {
         loadAssigned();
     }
 
+    @SuppressWarnings("unused")
     private void initUI() {
         JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
 

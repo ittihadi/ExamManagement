@@ -1,22 +1,27 @@
 package exammanagementsystem.ui.result;
 
+import java.awt.BorderLayout;
+import java.awt.Component;
+
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JComboBox;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+
+import exammanagementsystem.dao.ExamDAO;
+import exammanagementsystem.dao.ExamDAO.Exam;
+import exammanagementsystem.dao.QuestionDAO;
+import exammanagementsystem.dao.QuestionDAO.Question;
+import exammanagementsystem.dao.ResultDAO;
+
 /**
  *
  * @author ittihadi
  * @author bakthiananda
  */
-
-import javax.swing.*;
-import java.awt.*;
-import exammanagementsystem.dao.ExamDAO;
-import exammanagementsystem.dao.QuestionDAO;
-import exammanagementsystem.dao.ExamDAO.Exam;
-import exammanagementsystem.dao.QuestionDAO.Question;
-import exammanagementsystem.dao.ResultDAO;
-import exammanagementsystem.dao.ResultDAO.Result;
-
-import javax.swing.table.DefaultTableModel;
-
 public class ResultPerParticipantPanel extends JPanel {
 
     private JComboBox<Exam> cbExam;
@@ -27,6 +32,7 @@ public class ResultPerParticipantPanel extends JPanel {
     private ResultDAO resultDAO = new ResultDAO();
     private QuestionDAO questionDAO = new QuestionDAO();
 
+    @SuppressWarnings("unused")
     public ResultPerParticipantPanel(String userId) {
         setLayout(new BorderLayout(10, 10));
 
@@ -36,6 +42,7 @@ public class ResultPerParticipantPanel extends JPanel {
 
         // Custom renderer to show item names intead of internal object names
         cbExam.setRenderer(new DefaultListCellRenderer() {
+            @SuppressWarnings("rawtypes")
             @Override
             public Component getListCellRendererComponent(final JList list, Object value, final int index,
                     final boolean isSelected,
