@@ -52,19 +52,19 @@ public class ExamDAO {
 			this.description = description;
 		}
 
-		public Timestamp getStart_time() {
+		public Timestamp getStartTime() {
 			return start_time;
 		}
 
-		public void setStart_time(Timestamp start_time) {
+		public void setStartTime(Timestamp start_time) {
 			this.start_time = start_time;
 		}
 
-		public Timestamp getEnd_time() {
+		public Timestamp getEndTime() {
 			return end_time;
 		}
 
-		public void setEnd_time(Timestamp end_time) {
+		public void setEndTime(Timestamp end_time) {
 			this.end_time = end_time;
 		}
 	}

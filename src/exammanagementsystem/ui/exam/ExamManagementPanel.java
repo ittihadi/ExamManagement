@@ -13,7 +13,10 @@ import exammanagementsystem.dao.ExamDAO.Exam;
 
 import java.awt.*;
 import java.sql.Timestamp;
+import java.text.DateFormat;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.Calendar;
 
 public class ExamManagementPanel extends JPanel {
 
@@ -25,6 +28,18 @@ public class ExamManagementPanel extends JPanel {
     private JComboBox<Exam> cbSelectExam;
     private JTextField txtTitle;
     private JTextArea txtDescription;
+
+    private JTextField txtStartYear;
+    private JTextField txtStartMonth;
+    private JTextField txtStartDay;
+    private JTextField txtStartHour;
+    private JTextField txtStartMinute;
+
+    private JTextField txtEndYear;
+    private JTextField txtEndMonth;
+    private JTextField txtEndDay;
+    private JTextField txtEndHour;
+    private JTextField txtEndMinute;
 
     private JTabbedPane tabs;
 
@@ -84,6 +99,18 @@ public class ExamManagementPanel extends JPanel {
         txtDescription.setLineWrap(true);
         txtDescription.setWrapStyleWord(true);
 
+        txtStartYear = new JTextField(4);
+        txtStartMonth = new JTextField(2);
+        txtStartDay = new JTextField(2);
+        txtStartHour = new JTextField(2);
+        txtStartMinute = new JTextField(2);
+
+        txtEndYear = new JTextField(4);
+        txtEndMonth = new JTextField(2);
+        txtEndDay = new JTextField(2);
+        txtEndHour = new JTextField(2);
+        txtEndMinute = new JTextField(2);
+
         btnAdd = new JButton("Add");
         btnUpdate = new JButton("Update");
         btnDelete = new JButton("Delete");
@@ -107,6 +134,94 @@ public class ExamManagementPanel extends JPanel {
         form.add(new JLabel("Description"), c);
         c.gridx = 1;
         form.add(new JScrollPane(txtDescription), c);
+
+        y++;
+        c.gridx = 0;
+        c.gridy = y;
+        c.gridwidth = 2;
+        form.add(new JSeparator(), c);
+        c.gridwidth = 1;
+
+        // START TIME WIDGETS -----------------------------
+        y++;
+        c.gridx = 0;
+        c.gridy = y;
+        form.add(new JLabel("Start Year"), c);
+        c.gridx = 1;
+        form.add(txtStartYear, c);
+
+        y++;
+        c.gridx = 0;
+        c.gridy = y;
+        form.add(new JLabel("Start Month"), c);
+        c.gridx = 1;
+        form.add(txtStartMonth, c);
+
+        y++;
+        c.gridx = 0;
+        c.gridy = y;
+        form.add(new JLabel("Start Day"), c);
+        c.gridx = 1;
+        form.add(txtStartDay, c);
+
+        y++;
+        c.gridx = 0;
+        c.gridy = y;
+        form.add(new JLabel("Start Hour"), c);
+        c.gridx = 1;
+        form.add(txtStartHour, c);
+
+        y++;
+        c.gridx = 0;
+        c.gridy = y;
+        form.add(new JLabel("Start Minute"), c);
+        c.gridx = 1;
+        form.add(txtStartMinute, c);
+
+        // END TIME WIDGETS -------------------------------
+        y++;
+        c.gridx = 0;
+        c.gridy = y;
+        c.gridwidth = 2;
+        form.add(new JSeparator(), c);
+        c.gridwidth = 1;
+
+        y++;
+        c.gridx = 0;
+        c.gridy = y;
+        form.add(new JLabel("End Year"), c);
+        c.gridx = 1;
+        form.add(txtEndYear, c);
+
+        y++;
+        c.gridx = 0;
+        c.gridy = y;
+        form.add(new JLabel("End Month"), c);
+        c.gridx = 1;
+        form.add(txtEndMonth, c);
+
+        y++;
+        c.gridx = 0;
+        c.gridy = y;
+        form.add(new JLabel("End Day"), c);
+        c.gridx = 1;
+        form.add(txtEndDay, c);
+
+        y++;
+        c.gridx = 0;
+        c.gridy = y;
+        form.add(new JLabel("End Hour"), c);
+        c.gridx = 1;
+        form.add(txtEndHour, c);
+
+        y++;
+        c.gridx = 0;
+        c.gridy = y;
+        form.add(new JLabel("End Minute"), c);
+        c.gridx = 1;
+        form.add(txtEndMinute, c);
+
+        // BUTTONS ----------------------------------------
 
         y++;
         c.gridx = 0;
@@ -174,6 +289,24 @@ public class ExamManagementPanel extends JPanel {
         txtTitle.setText(selectedExam.getTitle());
         txtDescription.setText(selectedExam.getDescription());
 
+        Timestamp start = selectedExam.getStartTime();
+        Timestamp end = selectedExam.getEndTime();
+
+        LocalDateTime start_loc = start.toLocalDateTime();
+        LocalDateTime end_loc = end.toLocalDateTime();
+
+        txtStartYear.setText(String.format("%04d", start_loc.getYear()));
+        txtStartMonth.setText(String.format("%02d", start_loc.getMonthValue()));
+        txtStartDay.setText(String.format("%02d", start_loc.getDayOfMonth()));
+        txtStartHour.setText(String.format("%02d", start_loc.getHour()));
+        txtStartMinute.setText(String.format("%02d", start_loc.getMinute()));
+
+        txtEndYear.setText(String.format("%04d", end_loc.getYear()));
+        txtEndMonth.setText(String.format("%02d", end_loc.getMonthValue()));
+        txtEndDay.setText(String.format("%02d", end_loc.getDayOfMonth()));
+        txtEndHour.setText(String.format("%02d", end_loc.getHour()));
+        txtEndMinute.setText(String.format("%02d", end_loc.getMinute()));
+
         isEditing = true;
         updateButtons();
 
@@ -188,12 +321,26 @@ public class ExamManagementPanel extends JPanel {
         }
 
         try {
+            Instant start = Instant.parse(String.format("%s-%s-%sT%s:%s:00Z",
+                    txtStartYear.getText(),
+                    txtStartMonth.getText(),
+                    txtStartDay.getText(),
+                    txtStartHour.getText(),
+                    txtStartMinute.getText()));
+
+            Instant end = Instant.parse(String.format("%s-%s-%sT%s:%s:00Z",
+                    txtEndYear.getText(),
+                    txtEndMonth.getText(),
+                    txtEndDay.getText(),
+                    txtEndHour.getText(),
+                    txtEndMinute.getText()));
+
             Exam exam = new Exam(
                     (int) (System.currentTimeMillis() / 1000),
                     txtTitle.getText(),
                     txtDescription.getText(),
-                    Timestamp.from(Instant.now()),
-                    null);
+                    Timestamp.from(start),
+                    Timestamp.from(end));
 
             examDAO.create(exam);
             loadExamList();
@@ -211,6 +358,25 @@ public class ExamManagementPanel extends JPanel {
         try {
             selectedExam.setTitle(txtTitle.getText());
             selectedExam.setDescription(txtDescription.getText());
+
+            Instant start = Instant.parse(String.format("%s-%s-%sT%s:%s:00Z",
+                    txtStartYear.getText(),
+                    txtStartMonth.getText(),
+                    txtStartDay.getText(),
+                    txtStartHour.getText(),
+                    txtStartMinute.getText()));
+
+            selectedExam.setStartTime(Timestamp.from(start));
+
+            Instant end = Instant.parse(String.format("%s-%s-%sT%s:%s:00Z",
+                    txtEndYear.getText(),
+                    txtEndMonth.getText(),
+                    txtEndDay.getText(),
+                    txtEndHour.getText(),
+                    txtEndMinute.getText()));
+
+            selectedExam.setEndTime(Timestamp.from(end));
+
             examDAO.update(selectedExam);
             loadExamList();
 
@@ -249,6 +415,18 @@ public class ExamManagementPanel extends JPanel {
         txtDescription.setText("");
         cbSelectExam.setSelectedItem(null);
         selectedExam = null;
+
+        txtStartYear.setText("");
+        txtStartMonth.setText("");
+        txtStartDay.setText("");
+        txtStartHour.setText("");
+        txtStartMinute.setText("");
+
+        txtEndYear.setText("");
+        txtEndMonth.setText("");
+        txtEndDay.setText("");
+        txtEndHour.setText("");
+        txtEndMinute.setText("");
 
         reloadTabsForSelectedExam();
         isEditing = false;
