@@ -16,6 +16,7 @@ import exammanagementsystem.dao.ExamDAO.Exam;
 import exammanagementsystem.dao.ResultDAO;
 import exammanagementsystem.dao.UserDAO;
 import exammanagementsystem.dao.UserDAO.User;
+import exammanagementsystem.ui.result.ScoringPanel;
 import exammanagementsystem.dao.ResultDAO.Result;
 
 import java.awt.*;
@@ -95,12 +96,12 @@ public class ExamSupervisionPanel extends JPanel {
 
         cbSelectExam.addActionListener(e -> loadResponses());
 
-        // JButton btnScoring = new JButton("Open Scoring");
-        // btnScoring.addActionListener(e -> openScoring());
+        JButton btnScoring = new JButton("Scoring Overview");
+        btnScoring.addActionListener(e -> openScoring());
 
         header.add(new JLabel("Select Exam:"));
         header.add(cbSelectExam);
-        // header.add(btnScoring); // 🔥
+        header.add(btnScoring);
 
         add(header, BorderLayout.NORTH);
     }
@@ -202,7 +203,7 @@ public class ExamSupervisionPanel extends JPanel {
         y++;
         c.gridx = 0;
         c.gridy = y;
-        form.add(new JLabel("Score"), c);
+        form.add(new JLabel("Score (0-10)"), c);
         c.gridx = 1;
         form.add(txtScore, c);
 
@@ -268,6 +269,23 @@ public class ExamSupervisionPanel extends JPanel {
         } catch (SQLException e) {
             showError(e);
         }
+    }
+
+    private void openScoring() {
+        Exam exam = (Exam) cbSelectExam.getSelectedItem();
+        if (exam == null) {
+            JOptionPane.showMessageDialog(this, "Please select an exam");
+            return;
+        }
+
+        JFrame frame = new JFrame("Scoring Overview - " + exam.getTitle());
+        ScoringPanel scoringPanel = new ScoringPanel(exam.getId());
+
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.add(scoringPanel);
+        frame.setSize(600, 600);
+        frame.setLocationRelativeTo(this);
+        frame.setVisible(true);
     }
 
     private void loadSelectedResponse() {
@@ -350,12 +368,18 @@ public class ExamSupervisionPanel extends JPanel {
                 return;
             }
 
+            float score = Float.parseFloat(txtScore.getText());
+            if (score < 0 || score > 10) {
+                JOptionPane.showMessageDialog(this, "Score must be between 0-10");
+                return;
+            }
+
             Result new_res = new Result(
                     exam.getId(),
                     qsParticipant,
                     qsNum,
                     txtAnswer.getText(),
-                    Float.parseFloat(txtScore.getText()));
+                    score);
 
             result_dao.create(new_res);
             loadResponses();

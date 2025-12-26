@@ -7,6 +7,7 @@ package exammanagementsystem.ui.result;
  */
 
 import exammanagementsystem.dao.ResultDAO;
+import exammanagementsystem.dao.UserDAO;
 import exammanagementsystem.dao.ResultDAO.Result;
 import exammanagementsystem.dao.QuestionDAO;
 import exammanagementsystem.dao.QuestionDAO.Question;
@@ -27,97 +28,87 @@ public class ScoringPanel extends JPanel {
 
     private final ResultDAO resultDAO = new ResultDAO();
     private final QuestionDAO questionDAO = new QuestionDAO();
+    private final UserDAO userDAO = new UserDAO();
 
     private JTable table;
     private DefaultTableModel model;
+    private JLabel txtStatus;
 
     private int examId;
 
-    public ScoringPanel() {
-        setLayout(new BorderLayout(10,10));
-        setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+    public ScoringPanel(int examId) {
+        this.examId = examId;
 
-        JLabel title = new JLabel("Per Participant Scoring", JLabel.CENTER);
+        setLayout(new BorderLayout(10, 10));
+        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JLabel title = new JLabel("Scoring Overview", JLabel.CENTER);
         title.setFont(new Font("Arial", Font.BOLD, 16));
 
+        txtStatus = new JLabel();
+        txtStatus.setAlignmentX(0);
+
         model = new DefaultTableModel(
-            new String[]{
-                "User ID", "Question No", "Answer", "Type", "Score"
-            }, 0
-        ) {
-            @Override
-            public boolean isCellEditable(int row, int col) {
-                // Score editable hanya ESSAY
-                return col == 4 && "ESSAY".equals(getValueAt(row, 3));
-            }
+                new String[] {
+                        "Question No", "Average Score", "Highest Score", "Lowest Score"
+                }, 0) {
         };
 
         table = new JTable(model);
-
-        JButton btnSave = new JButton("Save Scores");
-        btnSave.addActionListener(e -> saveScores());
+        loadData();
 
         add(title, BorderLayout.NORTH);
         add(new JScrollPane(table), BorderLayout.CENTER);
-        add(btnSave, BorderLayout.SOUTH);
-    }
-
-    // dipanggil dari ExamSupervisionPanel
-    public void setExamContext(int examId) {
-        this.examId = examId;
-        loadData();
+        add(txtStatus, BorderLayout.SOUTH);
     }
 
     private void loadData() {
         model.setRowCount(0);
 
         try {
-            List<Result> results = resultDAO.readByExam(examId);
-            Map<Integer, QuestionType> questionTypes = new HashMap<>();
+            List<Question> questions = questionDAO.readByExam(examId);
+            int participantCount = userDAO.readParticipantsByExamId(examId).size();
 
-            for (Question q : questionDAO.readByExam(examId)) {
-                questionTypes.put(q.getNumber(), q.getType());
-            }
+            txtStatus.setText(String.format(
+                    "Score overview for %d questions, with %d participants",
+                    questions.size(),
+                    participantCount));
 
-            for (Result r : results) {
-                QuestionType type = questionTypes.get(r.getNumber());
+            for (Question question : questions) {
 
-                model.addRow(new Object[]{
-                    r.getUser_id(),
-                    r.getNumber(),
-                    r.getAnswer(),
-                    type.toString(),
-                    r.getScore()
+                List<Result> qsResults = resultDAO.readByExam(examId)
+                        .stream()
+                        .filter(r -> r.getNumber() == question.getNumber())
+                        .toList();
+
+                float maxScore = 0.0f;
+                float minScore = Float.MAX_VALUE;
+                float sumScore = 0.0f;
+
+                for (Result res : qsResults) {
+                    float score = res.getScore();
+                    if (maxScore < score) {
+                        maxScore = score;
+                    }
+                    if (minScore > score) {
+                        minScore = score;
+                    }
+                    sumScore += score;
+                }
+
+                float scoreAvg = sumScore / participantCount;
+                System.out.println(scoreAvg);
+
+                model.addRow(new Object[] {
+                        question.getNumber(),
+                        scoreAvg,
+                        maxScore,
+                        minScore
                 });
             }
 
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Failed load scoring data");
-        }
-    }
-
-    private void saveScores() {
-        try {
-            for (int i = 0; i < model.getRowCount(); i++) {
-                String userId = (String) model.getValueAt(i, 0);
-                int number = (int) model.getValueAt(i, 1);
-                float score = Float.parseFloat(model.getValueAt(i, 4).toString());
-
-                Result r = new Result(
-                    examId,
-                    userId,
-                    number,
-                    null,
-                    score
-                );
-
-                resultDAO.update(r);
-            }
-
-            JOptionPane.showMessageDialog(this, "Scores saved");
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Failed save scores");
         }
     }
 }
