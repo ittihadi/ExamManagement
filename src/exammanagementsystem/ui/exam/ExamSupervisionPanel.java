@@ -256,8 +256,8 @@ public class ExamSupervisionPanel extends JPanel {
                 });
             }
 
-            cbSelectNumber.removeAll();
-            cbSelectParticipant.removeAll();
+            cbSelectNumber.removeAllItems();
+            cbSelectParticipant.removeAllItems();
 
             for (Question qs : questions) {
                 cbSelectNumber.addItem(qs.getNumber());
